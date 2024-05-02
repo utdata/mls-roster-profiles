@@ -1,0 +1,79 @@
+[
+  {
+    "objectID": "01-cleaning.html",
+    "href": "01-cleaning.html",
+    "title": "Cleaning",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(janitor)"
+  },
+  {
+    "objectID": "01-cleaning.html#import",
+    "href": "01-cleaning.html#import",
+    "title": "Cleaning",
+    "section": "Import",
+    "text": "Import\n\nroster_raw &lt;- read_csv(\"data-raw/pinpoint/Roster.csv\") |&gt; clean_names()\n\nRows: 929 Columns: 7\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (7): File Name, NAME, ROSTER DESIGNATION, CURRENT STATUS, CONTRACT THRU,...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\nothers_raw &lt;- read_csv(\"data-raw/pinpoint/Other.csv\") |&gt; clean_names()\n\nRows: 761 Columns: 4\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (4): File Name, NO., NAME, Validation Link\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
+  },
+  {
+    "objectID": "01-cleaning.html#roster-cleaning",
+    "href": "01-cleaning.html#roster-cleaning",
+    "title": "Cleaning",
+    "section": "Roster cleaning",
+    "text": "Roster cleaning\n\nMake short club name\n\nroster_club &lt;- roster_raw |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n\nroster_club |&gt; glimpse()\n\nRows: 929\nColumns: 6\n$ club_short         &lt;chr&gt; \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"A…\n$ name               &lt;chr&gt; \"Luis Abram\", \"Thiago Almada\", \"Josh Cohen\", \"Giorg…\n$ roster_designation &lt;chr&gt; \"TAM Player\", \"Young Designated Player\", NA, \"Desig…\n$ current_status     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, \"Unavailable - On Loan\"…\n$ contract_thru      &lt;chr&gt; \"2025\", \"2026\", \"2025\", \"2025\", \"2027\", \"2024\", \"20…\n$ option_years       &lt;chr&gt; \"2026\", NA, \"2026\", \"2026\", \"2028\", \"2025\", \"2025\",…\n\n\n\n\nMake roster designation\n\nMake a roster type variable\n\nThis is a challenge because the senior roster designation is not there.\nOnce I have senior, then I can pull from name when roster changes, then fill down.\n\n\nThis checks if name starts with three uppercase letters and if so make that the roster spot.\n\nroster_subtype &lt;- roster_club |&gt; \n  mutate(\n    roster_type = case_when(\n      is.na(lag(club_short)) ~ \"SENIOR ROSTER\",\n      lag(club_short) != club_short ~ \"SENIOR ROSTER\",\n      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n  fill(roster_type) |&gt; \n  relocate(roster_type, .after = club_short) |&gt; \n  filter(!str_detect(name, \"[A-Z]{3}\")) # remove supp headers\n\nroster_subtype"
+  },
+  {
+    "objectID": "01-cleaning.html#others-cleaning",
+    "href": "01-cleaning.html#others-cleaning",
+    "title": "Cleaning",
+    "section": "Others cleaning",
+    "text": "Others cleaning\n\nMake short club name\n\nothers_club &lt;- others_raw |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n\nothers_club"
+  },
+  {
+    "objectID": "01-cleaning.html#adding-player_type-variable",
+    "href": "01-cleaning.html#adding-player_type-variable",
+    "title": "Cleaning",
+    "section": "Adding player_type variable",
+    "text": "Adding player_type variable\nThis sets the player type\n\nothers_type &lt;- others_club |&gt; \n  filter(name != \"NAME\") |&gt;\n  mutate(\n    player_type = case_when(\n      is.na(lag(club_short)) ~ \"INTERNATIONAL SLOT\",\n      lag(club_short) != club_short ~ \"INTERNATIONAL SLOT\",\n      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n  fill(player_type) |&gt; \n  filter(str_detect(no, \"^\\\\d\")) |&gt;\n  relocate(player_type, .after = club_short)\n\n\nothers_type"
+  },
+  {
+    "objectID": "01-cleaning.html#add-notes-variables",
+    "href": "01-cleaning.html#add-notes-variables",
+    "title": "Cleaning",
+    "section": "Add notes variables",
+    "text": "Add notes variables\nThere are several notes that are hopefully the same across all teams.\n\nothers_notes &lt;- others_type |&gt; \n  mutate(\n    notes_young = if_else(str_detect(name, \"Young DP\"), TRUE, FALSE),\n    notes_unavail = if_else(str_detect(name, \"\\\\*\"), TRUE, FALSE),\n    notes_notam = if_else(str_detect(name, \"\\\\^\"), TRUE, FALSE),\n    notes_can =  if_else(str_detect(name, \"\\\\+\"), TRUE, FALSE),\n  )\n\nothers_notes\n\n\n  \n\n\n\nAnd now I clean out the notes form the names. I’m leaving this to check.\n\nothers_notes_fixes &lt;- others_notes |&gt; \n  mutate(\n    name_clean = str_remove_all(name, \"\\\\(Young DP\\\\)|\\\\^|\\\\*|\\\\+\")\n  ) |&gt;\n  relocate(name_clean, .before = name)\n\nothers_notes_fixes |&gt; select(starts_with(\"name\"), starts_with(\"notes\"))"
+  },
+  {
+    "objectID": "01-cleaning.html#tighten-columns",
+    "href": "01-cleaning.html#tighten-columns",
+    "title": "Cleaning",
+    "section": "Tighten columns",
+    "text": "Tighten columns\nThis gets us to just the clean name.\n\nothers_clean &lt;- others_notes_fixes |&gt; \n  select(!name) |&gt; \n  rename(name = name_clean)\n\nothers_clean |&gt; glimpse()\n\nRows: 407\nColumns: 8\n$ club_short    &lt;chr&gt; \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", …\n$ player_type   &lt;chr&gt; \"INTERNATIONAL SLOT\", \"INTERNATIONAL SLOT\", \"INTERNATION…\n$ no            &lt;chr&gt; \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"1\", \"2\", \"3\", \"…\n$ name          &lt;chr&gt; \"Luis Abram\", \"Giorgios Giakoumakis\", \"Stian Gregersen\",…\n$ notes_young   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_unavail &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_notam   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …"
+  },
+  {
+    "objectID": "01-cleaning.html#export-the-files",
+    "href": "01-cleaning.html#export-the-files",
+    "title": "Cleaning",
+    "section": "Export the files",
+    "text": "Export the files\n\nroster_subtype |&gt; write_csv(\"data-out/rosters.csv\")\nroster_subtype |&gt; write_rds(\"data-processed/rosters.rds\")\nothers_clean |&gt; write_csv(\"data-out/others.csv\")\nothers_clean |&gt; write_rds(\"data-processed/others.rds\")"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "MLS Player Rosters",
+    "section": "",
+    "text": "I found out from the Austin Chronicle’s Eric Goodman that MLS published roster information for all MLS players.\nI downloaded the rosters in hopes of extracting the data.\nAs of May 2, 2024 this is a first pass at this challenge and I haven’t yet done many Quality Checks. If you see any problems add an issue in Github or ping me on X/Twitter @crit.\nFOR INSTANCE: I know there are some issues with the “others” file where I’m missing some players (CTL and CLB for sure). This is likely due to Pinpoint issues and I haven’t tried to fix these yet."
+  },
+  {
+    "objectID": "index.html#published-files",
+    "href": "index.html#published-files",
+    "title": "MLS Player Rosters",
+    "section": "Published files",
+    "text": "Published files\n\nrosters.csv include the senior, supplemental and off-roster player listings for each team.\nothers.csv include the international slots, designated players, U22 players and unavailable players. This also includes “Notes” designations as outlined below.\n\n\nRoster notes\n\nnotes_young (Young DP) Indicates a Young Designated Player. (This wasn’t really explained on the profiles).\nnotes_unavail *Indicates player is currently unavailable, and club may receive roster/international spot relief, but not Salary Budget relief unless otherwise determined pursuant to the loan agreement.\nnotes_notam ^Player cannot be converted from a Designated Player to a non-Designated Player by using Targeted Allocation Money.\nnotes_can +In addition to the International Roster Slots, each Canadian Club is permitted to designate up to three International Players who have been under contract with MLS and registered with one or more Canadian clubs for at least one year who will not count toward the club’s International Roster Slots.\nOff-roster Homegrown players can appear in MLS matches via a Short-Term Agreement."
+  },
+  {
+    "objectID": "index.html#how-this-was-done",
+    "href": "index.html#how-this-was-done",
+    "title": "MLS Player Rosters",
+    "section": "How this was done",
+    "text": "How this was done\n\nPinpoint extract\nI thought Google Pinpoint might be the easiest way to extract the data, so I split the single document into individual ones and then created two raw files:\n\ndata-raw/pinpoint/Rosters.csv has the main roster that is on the left side of the page.\ndata-raw/pinpoint/Other.csv has all the other designations on the right side of the page.\n\nI had to do some cleaning to make this into usable data. This is a quick look and I haven’t checked over everything super carefully yet.\n\n\nCleaning\nAll other cleaning was done in R the Cleaning notebook."
+  }
+]

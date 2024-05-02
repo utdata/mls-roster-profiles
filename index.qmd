@@ -1,0 +1,43 @@
+---
+title: "MLS Player Rosters"
+author: "Christian McDonald"
+---
+
+I found out from the Austin Chronicle's [Eric Goodman](https://x.com/Goodman/status/1786068099470446775) that MLS published roster information [for all MLS players](https://mlssoccer.app.box.com/s/e8eu9jpgtk09j03ynasb6zpd6hur37yk).
+
+I downloaded the rosters in hopes of extracting the data.
+
+> THIS IS EARLY DAYS AND THERE MAY BE QUALITY PROBLEMS
+
+As of May 2, 2024 this is a first pass at this challenge and I haven't yet done many Quality Checks. If you see any problems add an issue in Github or ping me on X/Twitter [@crit](https://twitter.com/crit).
+
+**FOR INSTANCE:** I know there are some issues with the "others" file where I'm missing some players (CTL and CLB for sure). This is likely due to Pinpoint issues and I haven't tried to fix these yet.
+
+## Published files
+
+- [rosters.csv](data-out/rosters.csv) include the senior, supplemental and off-roster player listings for each team.
+- ~~[others.csv](data-out/others.csv) include the international slots, designated players, U22 players and unavailable players. This also includes "Notes" designations as outlined below.~~
+
+### Roster notes
+
+- `notes_young` (Young DP) Indicates a Young Designated Player. (This wasn't really explained on the profiles).
+- `notes_unavail` *Indicates player is currently unavailable, and club may receive roster/international spot relief, but not Salary Budget relief unless otherwise determined pursuant to the loan agreement.
+- `notes_notam` ^Player cannot be converted from a Designated Player to a non-Designated Player by using Targeted Allocation Money.
+- `notes_can` +In addition to the International Roster Slots, each Canadian Club is permitted to designate up to three International Players who have been under contract with MLS and registered with one or more Canadian clubs for at least one year who will not count toward the club’s International Roster Slots.
+- Off-roster Homegrown players can appear in MLS matches via a Short-Term Agreement.
+
+
+## How this was done
+
+### Pinpoint extract 
+
+I thought Google Pinpoint might be the easiest way to extract the data, so I split the single document into individual ones and then created two raw files:
+
+- `data-raw/pinpoint/Rosters.csv` has the main roster that is on the left side of the page.
+- `data-raw/pinpoint/Other.csv` has all the other designations on the right side of the page.
+
+I had to do some cleaning to make this into usable data. This is a quick look and I haven't checked over everything super carefully yet.
+
+### Cleaning
+
+All other cleaning was done in R the [Cleaning notebook](01-cleaning.qmd).
