@@ -4,12 +4,9 @@ title: "Quality checks"
 
 Because we are extracting this data from PDF's I need to make sure all this is good.
 
-## Known issues
-
-- In `others` there are some missing players. You can tell when the `no` value doesn't make sense.
-
 ## Fixed issues
 
+- In `others` there were initially some missing players. I've tried to piece everythign together.
 - In the `rosters` file, the `roster_type` == "SUPPLEMENTAL SPOT 31" was changed to just "SUPPLEMENTAL SPOT" for consistency. The roster has the "31" in all cases but seems odd to keep here. I can change later if needed.
 - Fixed case where there were teams missing from the "others" data. At least I hope so
 
@@ -47,8 +44,6 @@ Let's spot check some teams.
 ```{r}
 rosters |> filter(club_short == "PHI")
 ```
-
-
 
 ## Others
 

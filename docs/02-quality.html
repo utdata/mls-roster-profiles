@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>rwd-mls-players - Quality checks</title>
+<title>MLS Team Roster Profiles - Quality checks</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">rwd-mls-players</span>
+    <span class="navbar-title">MLS Team Roster Profiles</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -130,11 +130,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./01-cleaning-roster.html"> 
-<span class="menu-text">Cleaning</span></a>
+<span class="menu-text">Cleaning rosters</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./01-cleaning-other.html"> 
-<span class="menu-text">Cleaning Slots</span></a>
+<span class="menu-text">Cleaning player designations</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link active" href="./02-quality.html" aria-current="page"> 
@@ -156,8 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#known-issues" id="toc-known-issues" class="nav-link active" data-scroll-target="#known-issues">Known issues</a></li>
-  <li><a href="#fixed-issues" id="toc-fixed-issues" class="nav-link" data-scroll-target="#fixed-issues">Fixed issues</a></li>
+  <li><a href="#fixed-issues" id="toc-fixed-issues" class="nav-link active" data-scroll-target="#fixed-issues">Fixed issues</a></li>
   <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
   <li><a href="#import-the-rosters" id="toc-import-the-rosters" class="nav-link" data-scroll-target="#import-the-rosters">Import the rosters</a></li>
   <li><a href="#others" id="toc-others" class="nav-link" data-scroll-target="#others">Others</a>
@@ -193,15 +192,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>Because we are extracting this data from PDF’s I need to make sure all this is good.</p>
-<section id="known-issues" class="level2">
-<h2 class="anchored" data-anchor-id="known-issues">Known issues</h2>
-<ul>
-<li>In <code>others</code> there are some missing players. You can tell when the <code>no</code> value doesn’t make sense.</li>
-</ul>
-</section>
 <section id="fixed-issues" class="level2">
 <h2 class="anchored" data-anchor-id="fixed-issues">Fixed issues</h2>
 <ul>
+<li>In <code>others</code> there were initially some missing players. I’ve tried to piece everythign together.</li>
 <li>In the <code>rosters</code> file, the <code>roster_type</code> == “SUPPLEMENTAL SPOT 31” was changed to just “SUPPLEMENTAL SPOT” for consistency. The roster has the “31” in all cases but seems odd to keep here. I can change later if needed.</li>
 <li>Fixed case where there were teams missing from the “others” data. At least I hope so</li>
 </ul>
