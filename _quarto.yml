@@ -4,12 +4,14 @@ project:
 
 
 website:
-  title: "rwd-mls-players"
+  title: "MLS Team Roster Profiles"
   navbar:
     left:
       - href: index.qmd
         text: Home
-      - 01-cleaning.qmd
+      - 01-cleaning-roster.qmd
+      - 01-cleaning-other.qmd
+      - 02-quality.qmd
 
 format:
   html:

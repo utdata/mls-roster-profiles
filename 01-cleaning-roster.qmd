@@ -1,0 +1,95 @@
+---
+title: "Cleaning rosters"
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(janitor)
+```
+
+## Import
+
+```{r}
+roster_raw <- read_csv("data-raw/pinpoint/Roster.csv") |> clean_names()
+```
+## Roster cleaning
+
+### Make short club name
+
+```{r}
+roster_club <- roster_raw |> 
+  mutate(
+    club_short = str_extract(file_name, "^\\w*") |> str_to_upper()
+  ) |>
+  relocate(club_short) |> 
+  select(!c(file_name, validation_link))
+
+roster_club |> glimpse()
+```
+
+### Make roster designation
+
+- Make a roster type variable
+  - This is a challenge because the senior roster designation is not there.
+  - Once I have senior, then I can pull from name when roster changes, then fill down.
+
+This checks if name starts with three uppercase letters and if so make that the roster spot.
+
+```{r}
+roster_subtype <- roster_club |> 
+  mutate(
+    roster_type = case_when(
+      is.na(lag(club_short)) ~ "SENIOR ROSTER",
+      lag(club_short) != club_short ~ "SENIOR ROSTER",
+      str_detect(name, "[A-Z]{3}") ~ name,
+      .default = NA
+    )
+  ) |>
+  fill(roster_type) |> 
+  relocate(roster_type, .after = club_short) |> 
+  filter(!str_detect(name, "[A-Z]{3}")) # remove supp headers
+
+roster_subtype
+```
+
+### Supplemental spot name
+
+Renaming the SUPPLEMENTAL SPOT 31 to just SUPPLEMENTAL SPOT
+
+```{r}
+roster_supp <- roster_subtype |> 
+  mutate(
+    roster_type = case_match(
+      roster_type,
+      "SUPPLEMENTAL SPOT 31" ~ "SUPPLEMENTAL SPOT",
+      .default = roster_type
+    )
+  )
+
+roster_supp |> count(roster_type)
+```
+
+## Make a list of teams
+
+When I work on the "other" designations, I need to see if I have all the teams represented. I create a list of those teams here so I can import and use it.
+
+```{r}
+clubs <- roster_supp |> 
+  distinct(club_short)
+
+clubs
+```
+
+## Export the files
+
+```{r}
+roster_supp |> write_csv("data-out/rosters.csv")
+roster_supp |> write_rds("data-processed/rosters.rds")
+clubs |> write_rds("data-processed/clubs.rds")
+```
+
+

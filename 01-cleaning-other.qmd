@@ -1,0 +1,193 @@
+---
+title: "Cleaning player designations"
+---
+
+The "Other" player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.
+
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(janitor)
+```
+
+
+## Import
+
+I pull in different versions of these files that did better with different teams to make sure I have them all
+
+```{r}
+clubs <-  read_rds("data-processed/clubs.rds")
+others_01 <- read_csv("data-raw/pinpoint/Other.csv") |> clean_names()
+others_02 <- read_csv("data-raw/pinpoint/Other_2.csv") |> clean_names()
+
+```
+
+
+## Make short club name function
+
+When I pulled out the individual files from the main PDF I named them based on their club. Here I use that name to build a short club name. Because I have to do this with several files, I made a function.
+
+
+```{r}
+short_name <- function(tib) {
+  tib |> 
+  mutate(
+    club_short = str_extract(file_name, "^\\w*") |> str_to_upper()
+  ) |>
+  relocate(club_short) |> 
+  select(!c(file_name, validation_link))
+}
+```
+
+Do this for our files
+
+```{r}
+others_club_01 <- short_name(others_01)
+others_club_02 <- short_name(others_02)
+```
+
+
+## Check the teams
+
+- Create the club_names with the function
+- Get a distinct list of names
+- compare with with the full list to find difference
+- search other files to see if those different teams are there
+
+### Get this list of missing files from the first set
+
+```{r}
+missing_clubs <- clubs |> 
+  anti_join(others_club_01 |> select(club_short) |> distinct())
+
+miss_club_list <- missing_clubs |> pull(club_short)
+
+miss_club_list
+```
+
+Double check those teams really aren't in the first data set.
+
+```{r}
+others_club_01 |> 
+  filter(club_short %in% miss_club_list)
+```
+
+### Check to see if missing clubs in new files
+
+```{r}
+others_club_02 |> 
+  filter(club_short %in% miss_club_list) |> select(club_short) |> distinct()
+```
+
+They are in there so we can use just these two files
+
+### Combine missing rows to first file
+
+```{r}
+others_combo <- others_club_02 |> 
+  filter(club_short %in% miss_club_list) |> 
+  bind_rows(others_club_01)
+
+# test that I have them all
+others_combo |> 
+  distinct(club_short) |> arrange(club_short)
+```
+
+## Adding player_type variable
+
+This sets the player type
+
+```{r}
+others_type <- others_combo |> 
+  filter(name != "NAME") |>
+  mutate(
+    player_type = case_when(
+      is.na(lag(club_short)) ~ "INTERNATIONAL SLOT",
+      lag(club_short) != club_short ~ "INTERNATIONAL SLOT",
+      str_detect(name, "[A-Z]{3}") ~ name,
+      .default = NA
+    )
+  ) |>
+  fill(player_type) |> 
+  filter(str_detect(no, "^\\d")) |>
+  relocate(player_type, .after = club_short)
+
+
+others_type
+```
+
+## Add notes variables
+
+There are several notes that are hopefully the same across all teams.
+
+```{r}
+others_notes <- others_type |> 
+  mutate(
+    notes_young = if_else(str_detect(name, "Young DP"), TRUE, FALSE),
+    notes_unavail = if_else(str_detect(name, "\\*"), TRUE, FALSE),
+    notes_notam = if_else(str_detect(name, "\\^"), TRUE, FALSE),
+    notes_can =  if_else(str_detect(name, "\\+"), TRUE, FALSE),
+  )
+
+others_notes
+```
+
+And now I clean out the notes form the names. I'm leaving this to check.
+
+```{r}
+others_notes_fixes <- others_notes |> 
+  mutate(
+    name_clean = str_remove_all(name, "\\(Young DP\\)|\\^|\\*|\\+")
+  ) |>
+  relocate(name_clean, .before = name)
+
+others_notes_fixes |> select(starts_with("name"), starts_with("notes"))  
+```
+
+### Fix player_type values
+
+Note the problems. The "INITIATIVE PLAYERS" shoudl be "U22 INITIATIVE PLAYERS"
+
+```{r}
+others_notes_fixes |> 
+  count(player_type)
+```
+
+```{r}
+others_type_fixes <- others_notes_fixes |> 
+  mutate(
+    player_type = case_match(
+      player_type,
+      "INITIATIVE PLAYERS" ~ "U22 INITIATIVE PLAYERS",
+      .default = player_type
+    )
+  )
+
+others_type_fixes |> 
+  count(player_type)
+```
+
+## Tighten columns
+
+- This gets us to just the clean name.
+- I'm also removing the problematic `no` variable which doesn't really mean anything.
+
+```{r}
+others_clean <- others_type_fixes |> 
+  select(!c(name, no)) |> 
+  rename(name = name_clean)
+
+others_clean |> glimpse()
+```
+
+## Export
+
+```{r}
+others_clean |> write_csv("data-out/others.csv")
+others_clean |> write_rds("data-processed/others.rds")
+```
+

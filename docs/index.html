@@ -94,8 +94,16 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./01-cleaning.html"> 
+    <a class="nav-link" href="./01-cleaning-roster.html"> 
 <span class="menu-text">Cleaning</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./01-cleaning-other.html"> 
+<span class="menu-text">Cleaning Slots</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./02-quality.html"> 
+<span class="menu-text">Quality checks</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -155,17 +163,15 @@ ul.task-list li input[type="checkbox"] {
 
 <p>I found out from the Austin Chronicle’s <a href="https://x.com/Goodman/status/1786068099470446775">Eric Goodman</a> that MLS published roster information <a href="https://mlssoccer.app.box.com/s/e8eu9jpgtk09j03ynasb6zpd6hur37yk">for all MLS players</a>.</p>
 <p>I downloaded the rosters in hopes of extracting the data.</p>
-<blockquote class="blockquote">
-<p>THIS IS EARLY DAYS AND THERE MAY BE QUALITY PROBLEMS</p>
-</blockquote>
-<p>As of May 2, 2024 this is a first pass at this challenge and I haven’t yet done many Quality Checks. If you see any problems add an issue in Github or ping me on X/Twitter <a href="https://twitter.com/crit"><span class="citation" data-cites="crit">@crit</span></a>.</p>
-<p><strong>FOR INSTANCE:</strong> I know there are some issues with the “others” file where I’m missing some players (CTL and CLB for sure). This is likely due to Pinpoint issues and I haven’t tried to fix these yet.</p>
+<p>As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I’ve looked over <code>rosters</code> pretty well. The <code>others</code> file hasn’t had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter <a href="https://twitter.com/crit"><span class="citation" data-cites="crit">@crit</span></a>.</p>
+<p><strong>FOR INSTANCE:</strong> At first I was missing some teams in “others” file because of some Pinpoint issues, but I <em>think</em> I have fixed them.</p>
 <section id="published-files" class="level2">
 <h2 class="anchored" data-anchor-id="published-files">Published files</h2>
 <ul>
 <li><a href="data-out/rosters.csv">rosters.csv</a> include the senior, supplemental and off-roster player listings for each team.</li>
-<li><del><a href="data-out/others.csv">others.csv</a> include the international slots, designated players, U22 players and unavailable players. This also includes “Notes” designations as outlined below.</del></li>
+<li><a href="data-out/others.csv">others.csv</a> include the international slots, designated players, U22 players and unavailable players. This also includes “Notes” designations as outlined below.</li>
 </ul>
+<p>I do aim to combine these two files in a meaningful way.</p>
 <section id="roster-notes" class="level3">
 <h3 class="anchored" data-anchor-id="roster-notes">Roster notes</h3>
 <ul>
@@ -186,11 +192,16 @@ ul.task-list li input[type="checkbox"] {
 <li><code>data-raw/pinpoint/Rosters.csv</code> has the main roster that is on the left side of the page.</li>
 <li><code>data-raw/pinpoint/Other.csv</code> has all the other designations on the right side of the page.</li>
 </ul>
+<p>In the case of the “other” data I had to do more than one pass with Pinpoint to catch all the teams.</p>
 <p>I had to do some cleaning to make this into usable data. This is a quick look and I haven’t checked over everything super carefully yet.</p>
 </section>
 <section id="cleaning" class="level3">
 <h3 class="anchored" data-anchor-id="cleaning">Cleaning</h3>
-<p>All other cleaning was done in R the <a href="./01-cleaning.html">Cleaning notebook</a>.</p>
+<p>All other cleaning was done in R notebooks:</p>
+<ul>
+<li><a href="./01-cleaning-roster.html">Cleaning Roster</a>.</li>
+<li><a href="./01-cleaning-other.html">Cleaning Other</a>.</li>
+</ul>
 
 
 </section>

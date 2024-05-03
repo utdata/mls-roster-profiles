@@ -1,0 +1,101 @@
+---
+title: "Quality checks"
+---
+
+Because we are extracting this data from PDF's I need to make sure all this is good.
+
+## Known issues
+
+- In `others` there are some missing players. You can tell when the `no` value doesn't make sense.
+
+## Fixed issues
+
+- In the `rosters` file, the `roster_type` == "SUPPLEMENTAL SPOT 31" was changed to just "SUPPLEMENTAL SPOT" for consistency. The roster has the "31" in all cases but seems odd to keep here. I can change later if needed.
+- Fixed case where there were teams missing from the "others" data. At least I hope so
+
+## Setup
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(janitor)
+```
+
+
+## Import the rosters
+
+```{r}
+rosters <- read_rds("data-processed/rosters.rds")
+
+rosters |> glimpse()
+```
+
+Do I have all the teams?
+
+```{r}
+rosters |> 
+  count(club_short)
+```
+
+There are [29 teams](https://en.wikipedia.org/wiki/Major_League_Soccer) in the MLS as of May 2, 2024.
+
+Let's spot check some teams.
+
+```{r}
+rosters |> filter(club_short == "PHI")
+```
+
+
+
+## Others
+
+I know there are some problems here. I need to figure out how much of an issue it is.
+
+```{r}
+others <- read_rds("data-processed/others.rds")
+
+others |> glimpse()
+```
+
+### Missing teams
+
+```{r}
+others |> 
+  count(club_short)
+```
+
+### Checking season-ending list
+
+```{r}
+others |> 
+  filter(player_type == "SEASON-ENDING INJURY LIST")
+```
+
+### Last check of all the data
+
+```{r}
+others |> 
+  arrange(club_short)
+```
+
+## Can I join these lists somehow?
+
+Not really, at least not easily. If I try, I get duplicates if a player is on more than one "others" list.
+
+```{r}
+rosters |> 
+  left_join(others, by = join_by(club_short, name))
+```
+
+I might be able to do this one designation at a time
+
+- Start with the roster
+- Filter others to a specific `player_type` designation
+- left_join to bring over the player_type
+- rename that new column to be the specific player_type
+
+I'll work on this next, but I want to push these changes today.
+
