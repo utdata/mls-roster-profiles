@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "MLS Player Rosters",
     "section": "",
-    "text": "I found out from the Austin Chronicle’s Eric Goodman that MLS published roster information for all MLS players.\nI downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. The code is here.\nAs of May 3, 2024 this is a second pass and it still could use some Quality Checks. I’ve looked over rosters pretty well. The others file hasn’t had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter @crit.\nFOR INSTANCE: At first I was missing some teams in “others” file because of some Pinpoint issues, but I think I have fixed them."
+    "text": "I found out from the Austin Chronicle’s Eric Goodman that MLS published roster information for all MLS players.\nI downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. The code is here.\nAs of May 3, 2024 this is a second pass and it still could use some Quality Checks. I’ve looked over rosters pretty well. The others file hasn’t had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter @crit.\nFOR INSTANCE: At first I was missing some teams in the “others” file because of some Pinpoint issues, but I think I have fixed them."
   },
   {
     "objectID": "index.html#published-files",
@@ -18,21 +18,21 @@
     "href": "index.html#how-this-was-done",
     "title": "MLS Player Rosters",
     "section": "How this was done",
-    "text": "How this was done\n\nPinpoint extract\nI thought Google Pinpoint might be the easiest way to extract the data, so I split the single document into individual ones and then created two raw files:\n\ndata-raw/pinpoint/Rosters.csv has the main roster that is on the left side of the page.\ndata-raw/pinpoint/Other.csv has all the other designations on the right side of the page.\n\nIn the case of the “other” data I had to do more than one pass with Pinpoint to catch all the teams.\nI had to do some cleaning to make this into usable data. This is a quick look and I haven’t checked over everything super carefully yet.\n\n\nCleaning\nAll other cleaning was done in R notebooks:\n\nCleaning Roster.\nCleaning Other."
+    "text": "How this was done\n\nPinpoint extract\nI thought Google Pinpoint might be the easiest way to extract the data. Pinpoint wants individual files instead of one file with a bunch of pages, so I split the single document into individual ones for each team. I used the “table” processing to create two raw csv files:\n\ndata-raw/pinpoint/Rosters.csv has the main roster that is on the left side of the page.\ndata-raw/pinpoint/Other.csv has all the other player designations listed on the right side of the page.\n\nIn the case of this “other” data I had to do more than one pass with Pinpoint to catch all the teams so there are multiple “raw” files. They are all in the repo in the data-raw folder.\nI had to do combine some of those raw files to get what I hope is a full set of everything.\n\n\nCleaning\nAll other cleaning was done in R in Quarto notebooks:\n\nCleaning Roster\nCleaning Other\n\nThe cleaned csv files are exported into the data-out/ folder in the repo. There are also some .rds files in data-processed/"
   },
   {
     "objectID": "02-quality.html",
     "href": "02-quality.html",
     "title": "Quality checks",
     "section": "",
-    "text": "Because we are extracting this data from PDF’s I need to make sure all this is good."
+    "text": "Because we are extracting this data from PDF’s I used this file to troubleshoot and make sure all this is good."
   },
   {
     "objectID": "02-quality.html#fixed-issues",
     "href": "02-quality.html#fixed-issues",
     "title": "Quality checks",
     "section": "Fixed issues",
-    "text": "Fixed issues\n\nIn others there were initially some missing players. I’ve tried to piece everythign together.\nIn the rosters file, the roster_type == “SUPPLEMENTAL SPOT 31” was changed to just “SUPPLEMENTAL SPOT” for consistency. The roster has the “31” in all cases but seems odd to keep here. I can change later if needed.\nFixed case where there were teams missing from the “others” data. At least I hope so"
+    "text": "Fixed issues\n\nIn others there were initially some missing players. I ended up piecing everything together in Cleaning other.\nIn the Cleaning roster notebook the roster_type == “SUPPLEMENTAL SPOT 31” was changed to just “SUPPLEMENTAL SPOT” for consistency. The roster has the “31” in all cases but seems odd to keep here. I can change later if needed.\n\nThere aren’t any unknown issues anymore, but I’m keeping this notebook around for now."
   },
   {
     "objectID": "02-quality.html#setup",
@@ -53,104 +53,125 @@
     "href": "02-quality.html#others",
     "title": "Quality checks",
     "section": "Others",
-    "text": "Others\nI know there are some problems here. I need to figure out how much of an issue it is.\n\nothers &lt;- read_rds(\"data-processed/others.rds\")\n\nothers |&gt; glimpse()\n\nRows: 464\nColumns: 7\n$ club_short    &lt;chr&gt; \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", …\n$ player_type   &lt;chr&gt; \"INTERNATIONAL SLOT\", \"INTERNATIONAL SLOT\", \"INTERNATION…\n$ name          &lt;chr&gt; \"Tomás Ángel\", \"Eduard Atuesta\", \"Stipe Biuk\", \"Mateusz …\n$ notes_young   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_unavail &lt;lgl&gt; FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, TRUE, TRU…\n$ notes_notam   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n\n\n\nMissing teams\n\nothers |&gt; \n  count(club_short)\n\n\n  \n\n\n\n\n\nChecking season-ending list\n\nothers |&gt; \n  filter(player_type == \"SEASON-ENDING INJURY LIST\")\n\n\n  \n\n\n\n\n\nLast check of all the data\n\nothers |&gt; \n  arrange(club_short)"
+    "text": "Others\nWe look at the others file here.\n\nothers &lt;- read_rds(\"data-processed/others.rds\")\n\nothers |&gt; glimpse()\n\nRows: 464\nColumns: 7\n$ club_short    &lt;chr&gt; \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", …\n$ player_type   &lt;chr&gt; \"INTERNATIONAL SLOT\", \"INTERNATIONAL SLOT\", \"INTERNATION…\n$ name          &lt;chr&gt; \"Tomás Ángel\", \"Eduard Atuesta\", \"Stipe Biuk\", \"Mateusz …\n$ notes_young   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_unavail &lt;lgl&gt; FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, TRUE, TRU…\n$ notes_notam   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n\n\n\nMissing teams\nAt one point we were missing teams. Here we make sure there are 29.\n\nothers |&gt; \n  count(club_short)\n\n\n  \n\n\n\n\n\nChecking season-ending list\nI noticed this because we were missing injured players. Here I check for them.\n\nothers |&gt; \n  filter(player_type == \"SEASON-ENDING INJURY LIST\")\n\n\n  \n\n\n\n\n\nLast check of all the data\n\nothers |&gt; \n  arrange(club_short)"
   },
   {
     "objectID": "02-quality.html#can-i-join-these-lists-somehow",
     "href": "02-quality.html#can-i-join-these-lists-somehow",
     "title": "Quality checks",
     "section": "Can I join these lists somehow?",
-    "text": "Can I join these lists somehow?\nNot really, at least not easily. If I try, I get duplicates if a player is on more than one “others” list.\n\nrosters |&gt; \n  left_join(others, by = join_by(club_short, name))\n\n\n  \n\n\n\nI might be able to do this one designation at a time\n\nStart with the roster\nFilter others to a specific player_type designation\nleft_join to bring over the player_type\nrename that new column to be the specific player_type\n\nI’ll work on this next, but I want to push these changes today."
+    "text": "Can I join these lists somehow?\nIt may be possible, but not not easily. If I try a simple join, I get duplicates if a player is on more than one “others” list.\n\nrosters |&gt; \n  left_join(others, by = join_by(club_short, name))\n\n\n  \n\n\n\n\nPossible future solution\nI might be able to do this one designation at a time\n\nStart with the roster\nFilter others to a specific player_type designation\nleft_join to bring over the player_type\nrename that new column to be the specific player_type\nrepeat for the other designations\n\nI’ll work on this next, but I want to push these changes today."
   },
   {
     "objectID": "01-cleaning-roster.html",
     "href": "01-cleaning-roster.html",
     "title": "Cleaning rosters",
     "section": "",
-    "text": "library(tidyverse)\nlibrary(janitor)"
+    "text": "This notebook is to clean the main roster listed on the left part of the PDF.\nSee the home page about using Pinpoint to get to this point."
+  },
+  {
+    "objectID": "01-cleaning-roster.html#setup",
+    "href": "01-cleaning-roster.html#setup",
+    "title": "Cleaning rosters",
+    "section": "Setup",
+    "text": "Setup\n\nlibrary(tidyverse)\nlibrary(janitor)"
   },
   {
     "objectID": "01-cleaning-roster.html#import",
     "href": "01-cleaning-roster.html#import",
     "title": "Cleaning rosters",
     "section": "Import",
-    "text": "Import\n\nroster_raw &lt;- read_csv(\"data-raw/pinpoint/Roster.csv\") |&gt; clean_names()\n\nRows: 929 Columns: 7\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (7): File Name, NAME, ROSTER DESIGNATION, CURRENT STATUS, CONTRACT THRU,...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
+    "text": "Import\nThis pulls in the first file that was exported from Pinpoint.\n\nroster_raw &lt;- read_csv(\"data-raw/pinpoint/Roster.csv\") |&gt; clean_names()\n\nRows: 929 Columns: 7\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (7): File Name, NAME, ROSTER DESIGNATION, CURRENT STATUS, CONTRACT THRU,...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
   },
   {
     "objectID": "01-cleaning-roster.html#roster-cleaning",
     "href": "01-cleaning-roster.html#roster-cleaning",
     "title": "Cleaning rosters",
     "section": "Roster cleaning",
-    "text": "Roster cleaning\n\nMake short club name\n\nroster_club &lt;- roster_raw |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n\nroster_club |&gt; glimpse()\n\nRows: 929\nColumns: 6\n$ club_short         &lt;chr&gt; \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"A…\n$ name               &lt;chr&gt; \"Luis Abram\", \"Thiago Almada\", \"Josh Cohen\", \"Giorg…\n$ roster_designation &lt;chr&gt; \"TAM Player\", \"Young Designated Player\", NA, \"Desig…\n$ current_status     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, \"Unavailable - On Loan\"…\n$ contract_thru      &lt;chr&gt; \"2025\", \"2026\", \"2025\", \"2025\", \"2027\", \"2024\", \"20…\n$ option_years       &lt;chr&gt; \"2026\", NA, \"2026\", \"2026\", \"2028\", \"2025\", \"2025\",…\n\n\n\n\nMake roster designation\n\nMake a roster type variable\n\nThis is a challenge because the senior roster designation is not there.\nOnce I have senior, then I can pull from name when roster changes, then fill down.\n\n\nThis checks if name starts with three uppercase letters and if so make that the roster spot.\n\nroster_subtype &lt;- roster_club |&gt; \n  mutate(\n    roster_type = case_when(\n      is.na(lag(club_short)) ~ \"SENIOR ROSTER\",\n      lag(club_short) != club_short ~ \"SENIOR ROSTER\",\n      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n  fill(roster_type) |&gt; \n  relocate(roster_type, .after = club_short) |&gt; \n  filter(!str_detect(name, \"[A-Z]{3}\")) # remove supp headers\n\nroster_subtype\n\n\n  \n\n\n\n\n\nSupplemental spot name\nRenaming the SUPPLEMENTAL SPOT 31 to just SUPPLEMENTAL SPOT\n\nroster_supp &lt;- roster_subtype |&gt; \n  mutate(\n    roster_type = case_match(\n      roster_type,\n      \"SUPPLEMENTAL SPOT 31\" ~ \"SUPPLEMENTAL SPOT\",\n      .default = roster_type\n    )\n  )\n\nroster_supp |&gt; count(roster_type)"
+    "text": "Roster cleaning\n\nMake short club name\nI first need to build a club name of some type, which I’m doing from the file name. I’m basing the short code based on another dataset I have rws-mls-salaries.\nI also move around the new column and remove the Pinpoint link variable no one can use anyway.\n\nroster_club &lt;- roster_raw |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n\nroster_club |&gt; glimpse()\n\nRows: 929\nColumns: 6\n$ club_short         &lt;chr&gt; \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"A…\n$ name               &lt;chr&gt; \"Luis Abram\", \"Thiago Almada\", \"Josh Cohen\", \"Giorg…\n$ roster_designation &lt;chr&gt; \"TAM Player\", \"Young Designated Player\", NA, \"Desig…\n$ current_status     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, \"Unavailable - On Loan\"…\n$ contract_thru      &lt;chr&gt; \"2025\", \"2026\", \"2025\", \"2025\", \"2027\", \"2024\", \"20…\n$ option_years       &lt;chr&gt; \"2026\", NA, \"2026\", \"2026\", \"2028\", \"2025\", \"2025\",…\n\n\n\n\nMake roster designation\nThe roster is really split into different categories with an overline header. That’s bad data management so I create a roster_type variable to say what category they are in.\nI have to do a lot of work to get the player categories right. You’d have to run the code line by line to really see it, but I annotated the lines below.\n\nroster_subtype &lt;- roster_club |&gt; \n  mutate(\n1    roster_type = case_when(\n2      is.na(lag(club_short)) ~ \"SENIOR ROSTER\",\n3      lag(club_short) != club_short ~ \"SENIOR ROSTER\",\n4      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n5  fill(roster_type) |&gt;\n6  relocate(roster_type, .after = club_short) |&gt;\n7  filter(!str_detect(name, \"[A-Z]{3}\"))\n\nroster_subtype\n\n\n1\n\nMake a roster_type variable\n\n2\n\nI use lag() to basically find the first empty row which is the top row and set roster_type to “SENIOR ROSTER”. This is just for the first row of the data. There are probably better ways to do this.\n\n3\n\nHere I find when a new row has a different team using lag(), and if so set that row to SENIOR ROSTER. This is a typical use of lag.\n\n4\n\nIf the name variable has three capital letters in a row then it is one of the categories (always in all caps) so I use name value in roster_type. This is telling me when a new roster category is starting.\n\n5\n\nThis fill() takes those roster categories and fills them down the blank rows until it hits another existing category. This gives every play their category.\n\n6\n\nI move the new column to closer to the front of the tibble.\n\n7\n\nI remove the category headers since we don’t need those anymore.\n\n\n\n\n\n  \n\n\n\n\n\nSupplemental spot name\nHere we rename SUPPLEMENTAL SPOT 31 to just SUPPLEMENTAL SPOT. It was inconsistent and I feel like the “31” needs explanation anyway. (No, I dunno what it means yet, but it is the only number used.)\n\nroster_supp &lt;- roster_subtype |&gt; \n  mutate(\n    roster_type = case_match(\n      roster_type,\n      \"SUPPLEMENTAL SPOT 31\" ~ \"SUPPLEMENTAL SPOT\",\n      .default = roster_type\n    )\n  )\n\nroster_supp |&gt; count(roster_type)"
   },
   {
     "objectID": "01-cleaning-roster.html#make-a-list-of-teams",
     "href": "01-cleaning-roster.html#make-a-list-of-teams",
     "title": "Cleaning rosters",
     "section": "Make a list of teams",
-    "text": "Make a list of teams\nWhen I work on the “other” designations, I need to see if I have all the teams represented. I create a list of those teams here so I can import and use it.\n\nclubs &lt;- roster_supp |&gt; \n  distinct(club_short)\n\nclubs"
+    "text": "Make a list of teams\nWhen I later work on the “other” player designations, I need to see if I have all the teams represented in my files. I create a list of those teams here so I can use it later.\n\nclubs &lt;- roster_supp |&gt; \n  distinct(club_short)\n\nclubs"
   },
   {
     "objectID": "01-cleaning-roster.html#export-the-files",
     "href": "01-cleaning-roster.html#export-the-files",
     "title": "Cleaning rosters",
     "section": "Export the files",
-    "text": "Export the files\n\nroster_supp |&gt; write_csv(\"data-out/rosters.csv\")\nroster_supp |&gt; write_rds(\"data-processed/rosters.rds\")\nclubs |&gt; write_rds(\"data-processed/clubs.rds\")"
+    "text": "Export the files\nSaving our the csv file for posterity. The rds file is the same data but in R’s native format. Also save out the clubs for later.\n\nroster_supp |&gt; write_csv(\"data-out/rosters.csv\")\nroster_supp |&gt; write_rds(\"data-processed/rosters.rds\")\nclubs |&gt; write_rds(\"data-processed/clubs.rds\")"
   },
   {
     "objectID": "01-cleaning-other.html",
     "href": "01-cleaning-other.html",
     "title": "Cleaning player designations",
     "section": "",
-    "text": "The “Other” player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.\nlibrary(tidyverse)\nlibrary(janitor)"
+    "text": "The “Other” player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.\nThis is the second file I tackled, so there is more explanation of some techniques in Cleaning roster."
+  },
+  {
+    "objectID": "01-cleaning-other.html#setup",
+    "href": "01-cleaning-other.html#setup",
+    "title": "Cleaning player designations",
+    "section": "Setup",
+    "text": "Setup\n\nlibrary(tidyverse)\nlibrary(janitor)"
   },
   {
     "objectID": "01-cleaning-other.html#import",
     "href": "01-cleaning-other.html#import",
     "title": "Cleaning player designations",
     "section": "Import",
-    "text": "Import\nI pull in different versions of these files that did better with different teams to make sure I have them all\n\nclubs &lt;-  read_rds(\"data-processed/clubs.rds\")\nothers_01 &lt;- read_csv(\"data-raw/pinpoint/Other.csv\") |&gt; clean_names()\n\nRows: 761 Columns: 4\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (4): File Name, NO., NAME, Validation Link\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\nothers_02 &lt;- read_csv(\"data-raw/pinpoint/Other_2.csv\") |&gt; clean_names()\n\nRows: 663 Columns: 4\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (4): File Name, NO., NAME, Validation Link\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
+    "text": "Import\nI pull in different versions of these files that did better with different teams to make sure I have them all. Also the clubs file to compare with.\n\nclubs &lt;-  read_rds(\"data-processed/clubs.rds\")\nothers_01 &lt;- read_csv(\"data-raw/pinpoint/Other.csv\") |&gt; clean_names()\n\nRows: 761 Columns: 4\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (4): File Name, NO., NAME, Validation Link\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\nothers_02 &lt;- read_csv(\"data-raw/pinpoint/Other_2.csv\") |&gt; clean_names()\n\nRows: 663 Columns: 4\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (4): File Name, NO., NAME, Validation Link\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
   },
   {
     "objectID": "01-cleaning-other.html#make-short-club-name-function",
     "href": "01-cleaning-other.html#make-short-club-name-function",
     "title": "Cleaning player designations",
     "section": "Make short club name function",
-    "text": "Make short club name function\nWhen I pulled out the individual files from the main PDF I named them based on their club. Here I use that name to build a short club name. Because I have to do this with several files, I made a function.\n\nshort_name &lt;- function(tib) {\n  tib |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n}\n\nDo this for our files\n\nothers_club_01 &lt;- short_name(others_01)\nothers_club_02 &lt;- short_name(others_02)"
+    "text": "Make short club name function\nWhen I pulled out the individual files from the main PDF I named them based on their club. Here I use that name to build a short club name. Because I have to do this with several files, I made a function to do it.\n\nclub_name &lt;- function(tib) {\n  tib |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n}\n\nSo I do this for our files …\n\nothers_club_01 &lt;- club_name(others_01)\nothers_club_02 &lt;- club_name(others_02)"
   },
   {
     "objectID": "01-cleaning-other.html#check-the-teams",
     "href": "01-cleaning-other.html#check-the-teams",
     "title": "Cleaning player designations",
     "section": "Check the teams",
-    "text": "Check the teams\n\nCreate the club_names with the function\nGet a distinct list of names\ncompare with with the full list to find difference\nsearch other files to see if those different teams are there\n\n\nGet this list of missing files from the first set\n\nmissing_clubs &lt;- clubs |&gt; \n  anti_join(others_club_01 |&gt; select(club_short) |&gt; distinct())\n\nJoining with `by = join_by(club_short)`\n\nmiss_club_list &lt;- missing_clubs |&gt; pull(club_short)\n\nmiss_club_list\n\n[1] \"LAFC\" \"NE\"   \"VAN\" \n\n\nDouble check those teams really aren’t in the first data set.\n\nothers_club_01 |&gt; \n  filter(club_short %in% miss_club_list)\n\n\n  \n\n\n\n\n\nCheck to see if missing clubs in new files\n\nothers_club_02 |&gt; \n  filter(club_short %in% miss_club_list) |&gt; select(club_short) |&gt; distinct()\n\n\n  \n\n\n\nThey are in there so we can use just these two files\n\n\nCombine missing rows to first file\n\nothers_combo &lt;- others_club_02 |&gt; \n  filter(club_short %in% miss_club_list) |&gt; \n  bind_rows(others_club_01)\n\n# test that I have them all\nothers_combo |&gt; \n  distinct(club_short) |&gt; arrange(club_short)"
+    "text": "Check the teams\nI know from working with this that I’m missing teams in my pinpoint exports. I work through fixing that here.\nThe idea is:\n\ncompare with with the full list to find difference\nsearch other files to see if those different teams are there\n\n\nGet this list of missing files from the first set\n\n1missing_clubs &lt;- clubs |&gt;\n2  anti_join(others_club_01 |&gt; select(club_short) |&gt; distinct())\n\n3miss_club_list &lt;- missing_clubs |&gt; pull(club_short)\n\nmiss_club_list\n\n\n1\n\nTake my list of clubs and compare them to the distinct() clubs available.\n\n2\n\nI use anti_join to find the teams that are not in the first file by comparing to the distinct names in our data.\n\n3\n\nI save that list of missing teams so I can use it later.\n\n\n\n\n[1] \"LAFC\" \"NE\"   \"VAN\" \n\n\nI think doublecheck that those teams really are missing. It should be zero rows.\n\nothers_club_01 |&gt; \n  filter(club_short %in% miss_club_list)\n\n\n  \n\n\n\n\n\nCheck to see if missing clubs in new files\nHere I take the second file and see if the missing teams are in it.\n\nothers_club_02 |&gt; \n  filter(club_short %in% miss_club_list) |&gt; select(club_short) |&gt; distinct()\n\n\n  \n\n\n\nAnd indeed they are so we can use just these two files to build one good file.\n\n\nCombine missing rows to first file\nHere I filter the second file to have just our missing teams, then bind them to our original data so we have a full set.\n\nothers_combo &lt;- others_club_02 |&gt; \n  filter(club_short %in% miss_club_list) |&gt; \n  bind_rows(others_club_01)\n\n# test that I have them all\nothers_combo |&gt; \n  distinct(club_short) |&gt; arrange(club_short)"
   },
   {
     "objectID": "01-cleaning-other.html#adding-player_type-variable",
     "href": "01-cleaning-other.html#adding-player_type-variable",
     "title": "Cleaning player designations",
     "section": "Adding player_type variable",
-    "text": "Adding player_type variable\nThis sets the player type\n\nothers_type &lt;- others_combo |&gt; \n  filter(name != \"NAME\") |&gt;\n  mutate(\n    player_type = case_when(\n      is.na(lag(club_short)) ~ \"INTERNATIONAL SLOT\",\n      lag(club_short) != club_short ~ \"INTERNATIONAL SLOT\",\n      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n  fill(player_type) |&gt; \n  filter(str_detect(no, \"^\\\\d\")) |&gt;\n  relocate(player_type, .after = club_short)\n\n\nothers_type"
+    "text": "Adding player_type variable\nThis sets the player category. This is fully explained in the roster cleaning.\n\nothers_type &lt;- others_combo |&gt; \n  filter(name != \"NAME\") |&gt;\n  mutate(\n    player_type = case_when(\n      is.na(lag(club_short)) ~ \"INTERNATIONAL SLOT\",\n      lag(club_short) != club_short ~ \"INTERNATIONAL SLOT\",\n      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n  fill(player_type) |&gt; \n  filter(str_detect(no, \"^\\\\d\")) |&gt;\n  relocate(player_type, .after = club_short)\n\n\nothers_type"
   },
   {
     "objectID": "01-cleaning-other.html#add-notes-variables",
     "href": "01-cleaning-other.html#add-notes-variables",
     "title": "Cleaning player designations",
     "section": "Add notes variables",
-    "text": "Add notes variables\nThere are several notes that are hopefully the same across all teams.\n\nothers_notes &lt;- others_type |&gt; \n  mutate(\n    notes_young = if_else(str_detect(name, \"Young DP\"), TRUE, FALSE),\n    notes_unavail = if_else(str_detect(name, \"\\\\*\"), TRUE, FALSE),\n    notes_notam = if_else(str_detect(name, \"\\\\^\"), TRUE, FALSE),\n    notes_can =  if_else(str_detect(name, \"\\\\+\"), TRUE, FALSE),\n  )\n\nothers_notes\n\n\n  \n\n\n\nAnd now I clean out the notes form the names. I’m leaving this to check.\n\nothers_notes_fixes &lt;- others_notes |&gt; \n  mutate(\n    name_clean = str_remove_all(name, \"\\\\(Young DP\\\\)|\\\\^|\\\\*|\\\\+\")\n  ) |&gt;\n  relocate(name_clean, .before = name)\n\nothers_notes_fixes |&gt; select(starts_with(\"name\"), starts_with(\"notes\"))  \n\n\n  \n\n\n\n\nFix player_type values\nNote the problems. The “INITIATIVE PLAYERS” shoudl be “U22 INITIATIVE PLAYERS”\n\nothers_notes_fixes |&gt; \n  count(player_type)\n\n\n  \n\n\n\n\nothers_type_fixes &lt;- others_notes_fixes |&gt; \n  mutate(\n    player_type = case_match(\n      player_type,\n      \"INITIATIVE PLAYERS\" ~ \"U22 INITIATIVE PLAYERS\",\n      .default = player_type\n    )\n  )\n\nothers_type_fixes |&gt; \n  count(player_type)"
+    "text": "Add notes variables\nThere are several note designations that players can have in these lists. This section creates categories based on those notes. See the index to learn more about what the notes mean.\n\nothers_notes &lt;- others_type |&gt; \n  mutate(\n    notes_young = if_else(str_detect(name, \"Young DP\"), TRUE, FALSE),\n    notes_unavail = if_else(str_detect(name, \"\\\\*\"), TRUE, FALSE),\n    notes_notam = if_else(str_detect(name, \"\\\\^\"), TRUE, FALSE),\n    notes_can =  if_else(str_detect(name, \"\\\\+\"), TRUE, FALSE),\n  )\n\nothers_notes\n\n\n  \n\n\n\nAnd now I clean the names to remove the character that signifies the notes. I print them out to check them.\n\nothers_notes_fixes &lt;- others_notes |&gt; \n  mutate(\n    name_clean = str_remove_all(name, \"\\\\(Young DP\\\\)|\\\\^|\\\\*|\\\\+\")\n  ) |&gt;\n  relocate(name_clean, .before = name)\n\nothers_notes_fixes |&gt; select(starts_with(\"name\"), starts_with(\"notes\"))"
+  },
+  {
+    "objectID": "01-cleaning-other.html#fix-player_type-values",
+    "href": "01-cleaning-other.html#fix-player_type-values",
+    "title": "Cleaning player designations",
+    "section": "Fix player_type values",
+    "text": "Fix player_type values\nIn the category cleaning, I lost “U22” from “U22 INITIATIVE PLAYERS”. I add it back.\nFirst checking them all.\n\nothers_notes_fixes |&gt; \n  count(player_type)\n\n\n  \n\n\n\nThen make fixes.\n\nothers_type_fixes &lt;- others_notes_fixes |&gt; \n  mutate(\n    player_type = case_match(\n      player_type,\n      \"INITIATIVE PLAYERS\" ~ \"U22 INITIATIVE PLAYERS\",\n      .default = player_type\n    )\n  )\n\nothers_type_fixes |&gt; \n  count(player_type)"
   },
   {
     "objectID": "01-cleaning-other.html#tighten-columns",
     "href": "01-cleaning-other.html#tighten-columns",
     "title": "Cleaning player designations",
     "section": "Tighten columns",
-    "text": "Tighten columns\n\nThis gets us to just the clean name.\nI’m also removing the problematic no variable which doesn’t really mean anything.\n\n\nothers_clean &lt;- others_type_fixes |&gt; \n  select(!c(name, no)) |&gt; \n  rename(name = name_clean)\n\nothers_clean |&gt; glimpse()\n\nRows: 464\nColumns: 7\n$ club_short    &lt;chr&gt; \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", …\n$ player_type   &lt;chr&gt; \"INTERNATIONAL SLOT\", \"INTERNATIONAL SLOT\", \"INTERNATION…\n$ name          &lt;chr&gt; \"Tomás Ángel\", \"Eduard Atuesta\", \"Stipe Biuk\", \"Mateusz …\n$ notes_young   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_unavail &lt;lgl&gt; FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, TRUE, TRU…\n$ notes_notam   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …"
+    "text": "Tighten columns\nThis removes columns we don’t need anymore. This includes the problematic no variable which doesn’t really mean anything.\n\nothers_clean &lt;- others_type_fixes |&gt; \n  select(!c(name, no)) |&gt; \n  rename(name = name_clean)\n\nothers_clean |&gt; glimpse()\n\nRows: 464\nColumns: 7\n$ club_short    &lt;chr&gt; \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", \"LAFC\", …\n$ player_type   &lt;chr&gt; \"INTERNATIONAL SLOT\", \"INTERNATIONAL SLOT\", \"INTERNATION…\n$ name          &lt;chr&gt; \"Tomás Ángel\", \"Eduard Atuesta\", \"Stipe Biuk\", \"Mateusz …\n$ notes_young   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_unavail &lt;lgl&gt; FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, TRUE, TRU…\n$ notes_notam   &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …\n$ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …"
   },
   {
     "objectID": "01-cleaning-other.html#export",
     "href": "01-cleaning-other.html#export",
     "title": "Cleaning player designations",
     "section": "Export",
-    "text": "Export\n\nothers_clean |&gt; write_csv(\"data-out/others.csv\")\nothers_clean |&gt; write_rds(\"data-processed/others.rds\")"
+    "text": "Export\nExport csv and rds versions of the files.\n\nothers_clean |&gt; write_csv(\"data-out/others.csv\")\nothers_clean |&gt; write_rds(\"data-processed/others.rds\")"
   }
 ]

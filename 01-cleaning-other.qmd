@@ -4,6 +4,9 @@ title: "Cleaning player designations"
 
 The "Other" player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.
 
+This is the second file I tackled, so there is more explanation of some techniques in [Cleaning roster](01-cleaning-roster.qmd).
+
+## Setup
 
 ```{r}
 #| label: setup
@@ -17,7 +20,7 @@ library(janitor)
 
 ## Import
 
-I pull in different versions of these files that did better with different teams to make sure I have them all
+I pull in different versions of these files that did better with different teams to make sure I have them all. Also the clubs file to compare with.
 
 ```{r}
 clubs <-  read_rds("data-processed/clubs.rds")
@@ -29,11 +32,11 @@ others_02 <- read_csv("data-raw/pinpoint/Other_2.csv") |> clean_names()
 
 ## Make short club name function
 
-When I pulled out the individual files from the main PDF I named them based on their club. Here I use that name to build a short club name. Because I have to do this with several files, I made a function.
+When I pulled out the individual files from the main PDF I named them based on their club. Here I use that name to build a short club name. Because I have to do this with several files, I made a function to do it.
 
 
 ```{r}
-short_name <- function(tib) {
+club_name <- function(tib) {
   tib |> 
   mutate(
     club_short = str_extract(file_name, "^\\w*") |> str_to_upper()
@@ -43,33 +46,40 @@ short_name <- function(tib) {
 }
 ```
 
-Do this for our files
+So I do this for our files ...
 
 ```{r}
-others_club_01 <- short_name(others_01)
-others_club_02 <- short_name(others_02)
+others_club_01 <- club_name(others_01)
+others_club_02 <- club_name(others_02)
 ```
-
 
 ## Check the teams
 
-- Create the club_names with the function
-- Get a distinct list of names
+I know from working with this that I'm missing teams in my pinpoint exports. I work through fixing that here.
+
+The idea is:
+
 - compare with with the full list to find difference
 - search other files to see if those different teams are there
 
 ### Get this list of missing files from the first set
 
 ```{r}
-missing_clubs <- clubs |> 
-  anti_join(others_club_01 |> select(club_short) |> distinct())
+#| message: false
 
-miss_club_list <- missing_clubs |> pull(club_short)
+missing_clubs <- clubs |> # <1>
+  anti_join(others_club_01 |> select(club_short) |> distinct()) # <2>
+
+miss_club_list <- missing_clubs |> pull(club_short) # <3>
 
 miss_club_list
 ```
 
-Double check those teams really aren't in the first data set.
+1. Take my list of clubs and compare them to the distinct() clubs available.
+1. I use `anti_join` to find the teams that are not in the first file by comparing to the distinct names in our data.
+1. I save that list of missing teams so I can use it later.
+
+I think doublecheck that those teams really are missing. It should be zero rows.
 
 ```{r}
 others_club_01 |> 
@@ -78,14 +88,18 @@ others_club_01 |>
 
 ### Check to see if missing clubs in new files
 
+Here I take the second file and see if the missing teams are in it.
+
 ```{r}
 others_club_02 |> 
   filter(club_short %in% miss_club_list) |> select(club_short) |> distinct()
 ```
 
-They are in there so we can use just these two files
+And indeed they are so we can use just these two files to build one good file.
 
 ### Combine missing rows to first file
+
+Here I filter the second file to have just our missing teams, then bind them to our original data so we have a full set.
 
 ```{r}
 others_combo <- others_club_02 |> 
@@ -99,7 +113,7 @@ others_combo |>
 
 ## Adding player_type variable
 
-This sets the player type
+This sets the player category. This is fully explained in [the roster cleaning](01-cleaning-roster.qmd).
 
 ```{r}
 others_type <- others_combo |> 
@@ -122,7 +136,7 @@ others_type
 
 ## Add notes variables
 
-There are several notes that are hopefully the same across all teams.
+There are several note designations that players can have in these lists. This section creates categories based on those notes. [See the index](index.qmd) to learn more about what the notes mean.
 
 ```{r}
 others_notes <- others_type |> 
@@ -136,7 +150,7 @@ others_notes <- others_type |>
 others_notes
 ```
 
-And now I clean out the notes form the names. I'm leaving this to check.
+And now I clean the names to remove the character that signifies the notes. I print them out to check them.
 
 ```{r}
 others_notes_fixes <- others_notes |> 
@@ -148,14 +162,18 @@ others_notes_fixes <- others_notes |>
 others_notes_fixes |> select(starts_with("name"), starts_with("notes"))  
 ```
 
-### Fix player_type values
+## Fix player_type values
 
-Note the problems. The "INITIATIVE PLAYERS" shoudl be "U22 INITIATIVE PLAYERS"
+In the category cleaning, I lost "U22" from "U22 INITIATIVE PLAYERS". I add it back.
+
+First checking them all.
 
 ```{r}
 others_notes_fixes |> 
   count(player_type)
 ```
+
+Then make fixes.
 
 ```{r}
 others_type_fixes <- others_notes_fixes |> 
@@ -173,8 +191,7 @@ others_type_fixes |>
 
 ## Tighten columns
 
-- This gets us to just the clean name.
-- I'm also removing the problematic `no` variable which doesn't really mean anything.
+This removes columns we don't need anymore. This includes the problematic `no` variable which doesn't really mean anything.
 
 ```{r}
 others_clean <- others_type_fixes |> 
@@ -185,6 +202,8 @@ others_clean |> glimpse()
 ```
 
 ## Export
+
+Export csv and rds versions of the files.
 
 ```{r}
 others_clean |> write_csv("data-out/others.csv")

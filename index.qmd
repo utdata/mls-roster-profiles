@@ -9,7 +9,7 @@ I downloaded the rosters in hopes of extracting the data. I cleaned it up and th
 
 As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I've looked over `rosters` pretty well. The `others` file hasn't had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter [@crit](https://twitter.com/crit).
 
-**FOR INSTANCE:** At first I was missing some teams in "others" file because of some Pinpoint issues, but I _think_ I have fixed them.
+**FOR INSTANCE:** At first I was missing some teams in the "others" file because of some Pinpoint issues, but I _think_ I have fixed them.
 
 ## Published files
 
@@ -30,19 +30,20 @@ I do aim to combine these two files in a meaningful way.
 
 ### Pinpoint extract 
 
-I thought Google Pinpoint might be the easiest way to extract the data, so I split the single document into individual ones and then created two raw files:
+I thought Google Pinpoint might be the easiest way to extract the data. Pinpoint wants individual files instead of one file with a bunch of pages, so I split the single document into individual ones for each team. I used the "table" processing to create two raw csv files:
 
 - `data-raw/pinpoint/Rosters.csv` has the main roster that is on the left side of the page.
-- `data-raw/pinpoint/Other.csv` has all the other designations on the right side of the page.
+- `data-raw/pinpoint/Other.csv` has all the other player designations listed on the right side of the page.
 
-In the case of the "other" data I had to do more than one pass with Pinpoint to catch all the teams.
+In the case of this "other" data I had to do more than one pass with Pinpoint to catch all the teams so there are multiple "raw" files. They are all in [the repo](https://github.com/utdata/mls-roster-profiles/) in the data-raw folder.
 
-I had to do some cleaning to make this into usable data. This is a quick look and I haven't checked over everything super carefully yet.
+I had to do combine some of those raw files to get what I hope is a full set of everything.
 
 ### Cleaning
 
-All other cleaning was done in R notebooks:
+All other cleaning was done in R in Quarto notebooks:
 
-- [Cleaning Roster](01-cleaning-roster.qmd).
-- [Cleaning Other](01-cleaning-other.qmd).
+- [Cleaning Roster](01-cleaning-roster.qmd)
+- [Cleaning Other](01-cleaning-other.qmd)
 
+The cleaned csv files are exported into the `data-out/` folder in [the repo](https://github.com/utdata/mls-roster-profiles/). There are also some .rds files in `data-processed/`

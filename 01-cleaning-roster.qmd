@@ -2,6 +2,12 @@
 title: "Cleaning rosters"
 ---
 
+This notebook is to clean the main roster listed on the left part of [the PDF](data-raw/Club-Roster-Profiles-2024-01-01.pdf).
+
+See [the home page](index.qmd) about using Pinpoint to get to this point.
+
+## Setup
+
 ```{r}
 #| label: setup
 #| message: false
@@ -13,12 +19,19 @@ library(janitor)
 
 ## Import
 
+This pulls in the first file that was exported from Pinpoint.
+
 ```{r}
 roster_raw <- read_csv("data-raw/pinpoint/Roster.csv") |> clean_names()
 ```
+
 ## Roster cleaning
 
 ### Make short club name
+
+I first need to build a club name of some type, which I'm doing from the file name. I'm basing the short code based on another dataset I have [rws-mls-salaries](https://github.com/utdata/rwd-mls-salaries).
+
+I also move around the new column and remove the Pinpoint link variable no one can use anyway.
 
 ```{r}
 roster_club <- roster_raw |> 
@@ -33,32 +46,38 @@ roster_club |> glimpse()
 
 ### Make roster designation
 
-- Make a roster type variable
-  - This is a challenge because the senior roster designation is not there.
-  - Once I have senior, then I can pull from name when roster changes, then fill down.
+The roster is really split into different categories with an overline header. That's bad data management so I create a `roster_type` variable to say what category they are in.
 
-This checks if name starts with three uppercase letters and if so make that the roster spot.
+I have to do a lot of work to get the player categories right. You'd have to run the code line by line to really see it, but I annotated the lines below.
 
 ```{r}
 roster_subtype <- roster_club |> 
   mutate(
-    roster_type = case_when(
-      is.na(lag(club_short)) ~ "SENIOR ROSTER",
-      lag(club_short) != club_short ~ "SENIOR ROSTER",
-      str_detect(name, "[A-Z]{3}") ~ name,
+    roster_type = case_when( # <1>
+      is.na(lag(club_short)) ~ "SENIOR ROSTER", # <2>
+      lag(club_short) != club_short ~ "SENIOR ROSTER", #<3>
+      str_detect(name, "[A-Z]{3}") ~ name, # <4>
       .default = NA
     )
   ) |>
-  fill(roster_type) |> 
-  relocate(roster_type, .after = club_short) |> 
-  filter(!str_detect(name, "[A-Z]{3}")) # remove supp headers
+  fill(roster_type) |> #<5>
+  relocate(roster_type, .after = club_short) |> # <6>
+  filter(!str_detect(name, "[A-Z]{3}")) # <7>
 
 roster_subtype
 ```
 
+1. Make a `roster_type` variable
+1. I use `lag()` to basically find the first empty row which is the top row and set `roster_type` to "SENIOR ROSTER". This is just for the first row of the data. There are probably better ways to do this.
+1. Here I find when a new row has a different team using `lag()`, and if so set that row to SENIOR ROSTER. This is a typical use of lag.
+1. If the name variable has three capital letters in a row then it is one of the categories (always in all caps) so I use `name` value in `roster_type`. This is telling me when a new roster category is starting.
+1. This `fill()` takes those roster categories and fills them down the blank rows until it hits another existing category. This gives every play their category.
+1. I move the new column to closer to the front of the tibble.
+1. I remove the category headers since we don't need those anymore.
+
 ### Supplemental spot name
 
-Renaming the SUPPLEMENTAL SPOT 31 to just SUPPLEMENTAL SPOT
+Here we rename SUPPLEMENTAL SPOT 31 to just SUPPLEMENTAL SPOT. It was inconsistent and I feel like the "31" needs explanation anyway. (No, I dunno what it means yet, but it is the only number used.)
 
 ```{r}
 roster_supp <- roster_subtype |> 
@@ -75,7 +94,7 @@ roster_supp |> count(roster_type)
 
 ## Make a list of teams
 
-When I work on the "other" designations, I need to see if I have all the teams represented. I create a list of those teams here so I can import and use it.
+When I later work on the "other" player designations, I need to see if I have all the teams represented in my files. I create a list of those teams here so I can use it later.
 
 ```{r}
 clubs <- roster_supp |> 
@@ -85,6 +104,8 @@ clubs
 ```
 
 ## Export the files
+
+Saving our the csv file for posterity. The rds file is the same data but in R's native format. Also save out the clubs for later.
 
 ```{r}
 roster_supp |> write_csv("data-out/rosters.csv")

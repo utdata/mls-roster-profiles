@@ -156,7 +156,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#import" id="toc-import" class="nav-link active" data-scroll-target="#import">Import</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#import" id="toc-import" class="nav-link" data-scroll-target="#import">Import</a></li>
   <li><a href="#make-short-club-name-function" id="toc-make-short-club-name-function" class="nav-link" data-scroll-target="#make-short-club-name-function">Make short club name function</a></li>
   <li><a href="#check-the-teams" id="toc-check-the-teams" class="nav-link" data-scroll-target="#check-the-teams">Check the teams</a>
   <ul class="collapse">
@@ -165,10 +166,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#combine-missing-rows-to-first-file" id="toc-combine-missing-rows-to-first-file" class="nav-link" data-scroll-target="#combine-missing-rows-to-first-file">Combine missing rows to first file</a></li>
   </ul></li>
   <li><a href="#adding-player_type-variable" id="toc-adding-player_type-variable" class="nav-link" data-scroll-target="#adding-player_type-variable">Adding player_type variable</a></li>
-  <li><a href="#add-notes-variables" id="toc-add-notes-variables" class="nav-link" data-scroll-target="#add-notes-variables">Add notes variables</a>
-  <ul class="collapse">
+  <li><a href="#add-notes-variables" id="toc-add-notes-variables" class="nav-link" data-scroll-target="#add-notes-variables">Add notes variables</a></li>
   <li><a href="#fix-player_type-values" id="toc-fix-player_type-values" class="nav-link" data-scroll-target="#fix-player_type-values">Fix player_type values</a></li>
-  </ul></li>
   <li><a href="#tighten-columns" id="toc-tighten-columns" class="nav-link" data-scroll-target="#tighten-columns">Tighten columns</a></li>
   <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export">Export</a></li>
   </ul>
@@ -197,13 +196,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>The “Other” player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.</p>
+<p>This is the second file I tackled, so there is more explanation of some techniques in <a href="./01-cleaning-roster.html">Cleaning roster</a>.</p>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
 <section id="import" class="level2">
 <h2 class="anchored" data-anchor-id="import">Import</h2>
-<p>I pull in different versions of these files that did better with different teams to make sure I have them all</p>
+<p>I pull in different versions of these files that did better with different teams to make sure I have them all. Also the clubs file to compare with.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>clubs <span class="ot">&lt;-</span>  <span class="fu">read_rds</span>(<span class="st">"data-processed/clubs.rds"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>others_01 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data-raw/pinpoint/Other.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -230,9 +233,9 @@ chr (4): File Name, NO., NAME, Validation Link
 </section>
 <section id="make-short-club-name-function" class="level2">
 <h2 class="anchored" data-anchor-id="make-short-club-name-function">Make short club name function</h2>
-<p>When I pulled out the individual files from the main PDF I named them based on their club. Here I use that name to build a short club name. Because I have to do this with several files, I made a function.</p>
+<p>When I pulled out the individual files from the main PDF I named them based on their club. Here I use that name to build a short club name. Because I have to do this with several files, I made a function to do it.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>short_name <span class="ot">&lt;-</span> <span class="cf">function</span>(tib) {</span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>club_name <span class="ot">&lt;-</span> <span class="cf">function</span>(tib) {</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  tib <span class="sc">|&gt;</span> </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">club_short =</span> <span class="fu">str_extract</span>(file_name, <span class="st">"^</span><span class="sc">\\</span><span class="st">w*"</span>) <span class="sc">|&gt;</span> <span class="fu">str_to_upper</span>()</span>
@@ -241,39 +244,53 @@ chr (4): File Name, NO., NAME, Validation Link
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!</span><span class="fu">c</span>(file_name, validation_link))</span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Do this for our files</p>
+<p>So I do this for our files …</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>others_club_01 <span class="ot">&lt;-</span> <span class="fu">short_name</span>(others_01)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>others_club_02 <span class="ot">&lt;-</span> <span class="fu">short_name</span>(others_02)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>others_club_01 <span class="ot">&lt;-</span> <span class="fu">club_name</span>(others_01)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>others_club_02 <span class="ot">&lt;-</span> <span class="fu">club_name</span>(others_02)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="check-the-teams" class="level2">
 <h2 class="anchored" data-anchor-id="check-the-teams">Check the teams</h2>
+<p>I know from working with this that I’m missing teams in my pinpoint exports. I work through fixing that here.</p>
+<p>The idea is:</p>
 <ul>
-<li>Create the club_names with the function</li>
-<li>Get a distinct list of names</li>
 <li>compare with with the full list to find difference</li>
 <li>search other files to see if those different teams are there</li>
 </ul>
 <section id="get-this-list-of-missing-files-from-the-first-set" class="level3">
 <h3 class="anchored" data-anchor-id="get-this-list-of-missing-files-from-the-first-set">Get this list of missing files from the first set</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>missing_clubs <span class="ot">&lt;-</span> clubs <span class="sc">|&gt;</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(others_club_01 <span class="sc">|&gt;</span> <span class="fu">select</span>(club_short) <span class="sc">|&gt;</span> <span class="fu">distinct</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(club_short)`</code></pre>
+<div class="sourceCode cell-code" id="annotated-cell-6"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><a class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="1" onclick="event.preventDefault();">1</a><span id="annotated-cell-6-1" class="code-annotation-target"><a href="#annotated-cell-6-1" aria-hidden="true" tabindex="-1"></a>missing_clubs <span class="ot">&lt;-</span> clubs <span class="sc">|&gt;</span></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="2" onclick="event.preventDefault();">2</a><span id="annotated-cell-6-2" class="code-annotation-target"><a href="#annotated-cell-6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(others_club_01 <span class="sc">|&gt;</span> <span class="fu">select</span>(club_short) <span class="sc">|&gt;</span> <span class="fu">distinct</span>())</span>
+<span id="annotated-cell-6-3"><a href="#annotated-cell-6-3" aria-hidden="true" tabindex="-1"></a></span>
+<a class="code-annotation-anchor" data-target-cell="annotated-cell-6" data-target-annotation="3" onclick="event.preventDefault();">3</a><span id="annotated-cell-6-4" class="code-annotation-target"><a href="#annotated-cell-6-4" aria-hidden="true" tabindex="-1"></a>miss_club_list <span class="ot">&lt;-</span> missing_clubs <span class="sc">|&gt;</span> <span class="fu">pull</span>(club_short)</span>
+<span id="annotated-cell-6-5"><a href="#annotated-cell-6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="annotated-cell-6-6"><a href="#annotated-cell-6-6" aria-hidden="true" tabindex="-1"></a>miss_club_list</span><div class="code-annotation-gutter-bg"></div><div class="code-annotation-gutter"></div></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-annotation">
+<dl class="code-annotation-container-grid">
+<dt data-target-cell="annotated-cell-6" data-target-annotation="1">1</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="1" data-code-annotation="1">Take my list of clubs and compare them to the distinct() clubs available.</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="2">2</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="2" data-code-annotation="2">I use <code>anti_join</code> to find the teams that are not in the first file by comparing to the distinct names in our data.</span>
+</dd>
+<dt data-target-cell="annotated-cell-6" data-target-annotation="3">3</dt>
+<dd>
+<span data-code-cell="annotated-cell-6" data-code-lines="4" data-code-annotation="3">I save that list of missing teams so I can use it later.</span>
+</dd>
+</dl>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>miss_club_list <span class="ot">&lt;-</span> missing_clubs <span class="sc">|&gt;</span> <span class="fu">pull</span>(club_short)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>miss_club_list</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "LAFC" "NE"   "VAN" </code></pre>
 </div>
 </div>
-<p>Double check those teams really aren’t in the first data set.</p>
+<p>I think doublecheck that those teams really are missing. It should be zero rows.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>others_club_01 <span class="sc">|&gt;</span> </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(club_short <span class="sc">%in%</span> miss_club_list)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>others_club_01 <span class="sc">|&gt;</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(club_short <span class="sc">%in%</span> miss_club_list)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -285,9 +302,10 @@ chr (4): File Name, NO., NAME, Validation Link
 </section>
 <section id="check-to-see-if-missing-clubs-in-new-files" class="level3">
 <h3 class="anchored" data-anchor-id="check-to-see-if-missing-clubs-in-new-files">Check to see if missing clubs in new files</h3>
+<p>Here I take the second file and see if the missing teams are in it.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>others_club_02 <span class="sc">|&gt;</span> </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(club_short <span class="sc">%in%</span> miss_club_list) <span class="sc">|&gt;</span> <span class="fu">select</span>(club_short) <span class="sc">|&gt;</span> <span class="fu">distinct</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>others_club_02 <span class="sc">|&gt;</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(club_short <span class="sc">%in%</span> miss_club_list) <span class="sc">|&gt;</span> <span class="fu">select</span>(club_short) <span class="sc">|&gt;</span> <span class="fu">distinct</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -296,18 +314,19 @@ chr (4): File Name, NO., NAME, Validation Link
 </div>
 </div>
 </div>
-<p>They are in there so we can use just these two files</p>
+<p>And indeed they are so we can use just these two files to build one good file.</p>
 </section>
 <section id="combine-missing-rows-to-first-file" class="level3">
 <h3 class="anchored" data-anchor-id="combine-missing-rows-to-first-file">Combine missing rows to first file</h3>
+<p>Here I filter the second file to have just our missing teams, then bind them to our original data so we have a full set.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>others_combo <span class="ot">&lt;-</span> others_club_02 <span class="sc">|&gt;</span> </span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(club_short <span class="sc">%in%</span> miss_club_list) <span class="sc">|&gt;</span> </span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(others_club_01)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># test that I have them all</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>others_combo <span class="sc">|&gt;</span> </span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(club_short) <span class="sc">|&gt;</span> <span class="fu">arrange</span>(club_short)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>others_combo <span class="ot">&lt;-</span> others_club_02 <span class="sc">|&gt;</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(club_short <span class="sc">%in%</span> miss_club_list) <span class="sc">|&gt;</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(others_club_01)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># test that I have them all</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>others_combo <span class="sc">|&gt;</span> </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(club_short) <span class="sc">|&gt;</span> <span class="fu">arrange</span>(club_short)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -320,24 +339,24 @@ chr (4): File Name, NO., NAME, Validation Link
 </section>
 <section id="adding-player_type-variable" class="level2">
 <h2 class="anchored" data-anchor-id="adding-player_type-variable">Adding player_type variable</h2>
-<p>This sets the player type</p>
+<p>This sets the player category. This is fully explained in <a href="./01-cleaning-roster.html">the roster cleaning</a>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>others_type <span class="ot">&lt;-</span> others_combo <span class="sc">|&gt;</span> </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">!=</span> <span class="st">"NAME"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">player_type =</span> <span class="fu">case_when</span>(</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(<span class="fu">lag</span>(club_short)) <span class="sc">~</span> <span class="st">"INTERNATIONAL SLOT"</span>,</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">lag</span>(club_short) <span class="sc">!=</span> club_short <span class="sc">~</span> <span class="st">"INTERNATIONAL SLOT"</span>,</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_detect</span>(name, <span class="st">"[A-Z]{3}"</span>) <span class="sc">~</span> name,</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">.default =</span> <span class="cn">NA</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fill</span>(player_type) <span class="sc">|&gt;</span> </span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(no, <span class="st">"^</span><span class="sc">\\</span><span class="st">d"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(player_type, <span class="at">.after =</span> club_short)</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>others_type</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>others_type <span class="ot">&lt;-</span> others_combo <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">!=</span> <span class="st">"NAME"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">player_type =</span> <span class="fu">case_when</span>(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(<span class="fu">lag</span>(club_short)) <span class="sc">~</span> <span class="st">"INTERNATIONAL SLOT"</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">lag</span>(club_short) <span class="sc">!=</span> club_short <span class="sc">~</span> <span class="st">"INTERNATIONAL SLOT"</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_detect</span>(name, <span class="st">"[A-Z]{3}"</span>) <span class="sc">~</span> name,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">.default =</span> <span class="cn">NA</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fill</span>(player_type) <span class="sc">|&gt;</span> </span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(no, <span class="st">"^</span><span class="sc">\\</span><span class="st">d"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(player_type, <span class="at">.after =</span> club_short)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>others_type</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -349,17 +368,17 @@ chr (4): File Name, NO., NAME, Validation Link
 </section>
 <section id="add-notes-variables" class="level2">
 <h2 class="anchored" data-anchor-id="add-notes-variables">Add notes variables</h2>
-<p>There are several notes that are hopefully the same across all teams.</p>
+<p>There are several note designations that players can have in these lists. This section creates categories based on those notes. <a href="./index.html">See the index</a> to learn more about what the notes mean.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>others_notes <span class="ot">&lt;-</span> others_type <span class="sc">|&gt;</span> </span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_young =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"Young DP"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_unavail =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">*"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_notam =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">^"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_can =</span>  <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">+"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>others_notes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>others_notes <span class="ot">&lt;-</span> others_type <span class="sc">|&gt;</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_young =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"Young DP"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_unavail =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">*"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_notam =</span> <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">^"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">notes_can =</span>  <span class="fu">if_else</span>(<span class="fu">str_detect</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">+"</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>),</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>others_notes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -368,15 +387,15 @@ chr (4): File Name, NO., NAME, Validation Link
 </div>
 </div>
 </div>
-<p>And now I clean out the notes form the names. I’m leaving this to check.</p>
+<p>And now I clean the names to remove the character that signifies the notes. I print them out to check them.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>others_notes_fixes <span class="ot">&lt;-</span> others_notes <span class="sc">|&gt;</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_clean =</span> <span class="fu">str_remove_all</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">(Young DP</span><span class="sc">\\</span><span class="st">)|</span><span class="sc">\\</span><span class="st">^|</span><span class="sc">\\</span><span class="st">*|</span><span class="sc">\\</span><span class="st">+"</span>)</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(name_clean, <span class="at">.before =</span> name)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>others_notes_fixes <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"name"</span>), <span class="fu">starts_with</span>(<span class="st">"notes"</span>))  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>others_notes_fixes <span class="ot">&lt;-</span> others_notes <span class="sc">|&gt;</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_clean =</span> <span class="fu">str_remove_all</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">(Young DP</span><span class="sc">\\</span><span class="st">)|</span><span class="sc">\\</span><span class="st">^|</span><span class="sc">\\</span><span class="st">*|</span><span class="sc">\\</span><span class="st">+"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(name_clean, <span class="at">.before =</span> name)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>others_notes_fixes <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"name"</span>), <span class="fu">starts_with</span>(<span class="st">"notes"</span>))  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -385,12 +404,14 @@ chr (4): File Name, NO., NAME, Validation Link
 </div>
 </div>
 </div>
-<section id="fix-player_type-values" class="level3">
-<h3 class="anchored" data-anchor-id="fix-player_type-values">Fix player_type values</h3>
-<p>Note the problems. The “INITIATIVE PLAYERS” shoudl be “U22 INITIATIVE PLAYERS”</p>
+</section>
+<section id="fix-player_type-values" class="level2">
+<h2 class="anchored" data-anchor-id="fix-player_type-values">Fix player_type values</h2>
+<p>In the category cleaning, I lost “U22” from “U22 INITIATIVE PLAYERS”. I add it back.</p>
+<p>First checking them all.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>others_notes_fixes <span class="sc">|&gt;</span> </span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(player_type)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>others_notes_fixes <span class="sc">|&gt;</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(player_type)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -399,18 +420,19 @@ chr (4): File Name, NO., NAME, Validation Link
 </div>
 </div>
 </div>
+<p>Then make fixes.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>others_type_fixes <span class="ot">&lt;-</span> others_notes_fixes <span class="sc">|&gt;</span> </span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">player_type =</span> <span class="fu">case_match</span>(</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>      player_type,</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">"INITIATIVE PLAYERS"</span> <span class="sc">~</span> <span class="st">"U22 INITIATIVE PLAYERS"</span>,</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">.default =</span> player_type</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>others_type_fixes <span class="sc">|&gt;</span> </span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(player_type)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>others_type_fixes <span class="ot">&lt;-</span> others_notes_fixes <span class="sc">|&gt;</span> </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">player_type =</span> <span class="fu">case_match</span>(</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      player_type,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">"INITIATIVE PLAYERS"</span> <span class="sc">~</span> <span class="st">"U22 INITIATIVE PLAYERS"</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">.default =</span> player_type</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>others_type_fixes <span class="sc">|&gt;</span> </span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(player_type)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -420,19 +442,15 @@ chr (4): File Name, NO., NAME, Validation Link
 </div>
 </div>
 </section>
-</section>
 <section id="tighten-columns" class="level2">
 <h2 class="anchored" data-anchor-id="tighten-columns">Tighten columns</h2>
-<ul>
-<li>This gets us to just the clean name.</li>
-<li>I’m also removing the problematic <code>no</code> variable which doesn’t really mean anything.</li>
-</ul>
+<p>This removes columns we don’t need anymore. This includes the problematic <code>no</code> variable which doesn’t really mean anything.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>others_clean <span class="ot">&lt;-</span> others_type_fixes <span class="sc">|&gt;</span> </span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!</span><span class="fu">c</span>(name, no)) <span class="sc">|&gt;</span> </span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">name =</span> name_clean)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>others_clean <span class="sc">|&gt;</span> <span class="fu">glimpse</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>others_clean <span class="ot">&lt;-</span> others_type_fixes <span class="sc">|&gt;</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!</span><span class="fu">c</span>(name, no)) <span class="sc">|&gt;</span> </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">name =</span> name_clean)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>others_clean <span class="sc">|&gt;</span> <span class="fu">glimpse</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 464
 Columns: 7
@@ -448,9 +466,10 @@ $ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FAL
 </section>
 <section id="export" class="level2">
 <h2 class="anchored" data-anchor-id="export">Export</h2>
+<p>Export csv and rds versions of the files.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>others_clean <span class="sc">|&gt;</span> <span class="fu">write_csv</span>(<span class="st">"data-out/others.csv"</span>)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>others_clean <span class="sc">|&gt;</span> <span class="fu">write_rds</span>(<span class="st">"data-processed/others.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>others_clean <span class="sc">|&gt;</span> <span class="fu">write_csv</span>(<span class="st">"data-out/others.csv"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>others_clean <span class="sc">|&gt;</span> <span class="fu">write_rds</span>(<span class="st">"data-processed/others.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

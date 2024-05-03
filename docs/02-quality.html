@@ -165,7 +165,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#checking-season-ending-list" id="toc-checking-season-ending-list" class="nav-link" data-scroll-target="#checking-season-ending-list">Checking season-ending list</a></li>
   <li><a href="#last-check-of-all-the-data" id="toc-last-check-of-all-the-data" class="nav-link" data-scroll-target="#last-check-of-all-the-data">Last check of all the data</a></li>
   </ul></li>
-  <li><a href="#can-i-join-these-lists-somehow" id="toc-can-i-join-these-lists-somehow" class="nav-link" data-scroll-target="#can-i-join-these-lists-somehow">Can I join these lists somehow?</a></li>
+  <li><a href="#can-i-join-these-lists-somehow" id="toc-can-i-join-these-lists-somehow" class="nav-link" data-scroll-target="#can-i-join-these-lists-somehow">Can I join these lists somehow?</a>
+  <ul class="collapse">
+  <li><a href="#possible-future-solution" id="toc-possible-future-solution" class="nav-link" data-scroll-target="#possible-future-solution">Possible future solution</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -191,14 +194,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Because we are extracting this data from PDF’s I need to make sure all this is good.</p>
+<p>Because we are extracting this data from PDF’s I used this file to troubleshoot and make sure all this is good.</p>
 <section id="fixed-issues" class="level2">
 <h2 class="anchored" data-anchor-id="fixed-issues">Fixed issues</h2>
 <ul>
-<li>In <code>others</code> there were initially some missing players. I’ve tried to piece everythign together.</li>
-<li>In the <code>rosters</code> file, the <code>roster_type</code> == “SUPPLEMENTAL SPOT 31” was changed to just “SUPPLEMENTAL SPOT” for consistency. The roster has the “31” in all cases but seems odd to keep here. I can change later if needed.</li>
-<li>Fixed case where there were teams missing from the “others” data. At least I hope so</li>
+<li>In <code>others</code> there were initially some missing players. I ended up piecing everything together in <a href="./01-cleaning-other.html">Cleaning other</a>.</li>
+<li>In the <a href="./01-cleaning-roster.html">Cleaning roster</a> notebook the <code>roster_type</code> == “SUPPLEMENTAL SPOT 31” was changed to just “SUPPLEMENTAL SPOT” for consistency. The roster has the “31” in all cases but seems odd to keep here. I can change later if needed.</li>
 </ul>
+<p>There aren’t any unknown issues anymore, but I’m keeping this notebook around for now.</p>
 </section>
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
@@ -252,7 +255,7 @@ $ option_years       &lt;chr&gt; "2026", NA, "2026", "2026", "2028", "2025", "20
 </section>
 <section id="others" class="level2">
 <h2 class="anchored" data-anchor-id="others">Others</h2>
-<p>I know there are some problems here. I need to figure out how much of an issue it is.</p>
+<p>We look at the others file here.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>others <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data-processed/others.rds"</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -271,6 +274,7 @@ $ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FAL
 </div>
 <section id="missing-teams" class="level3">
 <h3 class="anchored" data-anchor-id="missing-teams">Missing teams</h3>
+<p>At one point we were missing teams. Here we make sure there are 29.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>others <span class="sc">|&gt;</span> </span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(club_short)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -285,6 +289,7 @@ $ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FAL
 </section>
 <section id="checking-season-ending-list" class="level3">
 <h3 class="anchored" data-anchor-id="checking-season-ending-list">Checking season-ending list</h3>
+<p>I noticed this because we were missing injured players. Here I check for them.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>others <span class="sc">|&gt;</span> </span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(player_type <span class="sc">==</span> <span class="st">"SEASON-ENDING INJURY LIST"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -314,7 +319,7 @@ $ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FAL
 </section>
 <section id="can-i-join-these-lists-somehow" class="level2">
 <h2 class="anchored" data-anchor-id="can-i-join-these-lists-somehow">Can I join these lists somehow?</h2>
-<p>Not really, at least not easily. If I try, I get duplicates if a player is on more than one “others” list.</p>
+<p>It may be possible, but not not easily. If I try a simple join, I get duplicates if a player is on more than one “others” list.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rosters <span class="sc">|&gt;</span> </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(others, <span class="at">by =</span> <span class="fu">join_by</span>(club_short, name))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -326,16 +331,20 @@ $ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FAL
 </div>
 </div>
 </div>
+<section id="possible-future-solution" class="level3">
+<h3 class="anchored" data-anchor-id="possible-future-solution">Possible future solution</h3>
 <p>I might be able to do this one designation at a time</p>
 <ul>
 <li>Start with the roster</li>
 <li>Filter others to a specific <code>player_type</code> designation</li>
 <li>left_join to bring over the player_type</li>
 <li>rename that new column to be the specific player_type</li>
+<li>repeat for the other designations</li>
 </ul>
 <p>I’ll work on this next, but I want to push these changes today.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
