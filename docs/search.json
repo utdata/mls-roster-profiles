@@ -4,14 +4,14 @@
     "href": "index.html",
     "title": "MLS Player Rosters",
     "section": "",
-    "text": "I found out from the Austin Chronicle’s Eric Goodman that MLS published roster information for all MLS players.\nI downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. The code is here.\nAs of May 3, 2024 this is a second pass and it still could use some Quality Checks. I’ve looked over rosters pretty well. The others file hasn’t had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter @crit.\nFOR INSTANCE: At first I was missing some teams in the “others” file because of some Pinpoint issues, but I think I have fixed them."
+    "text": "I found out from the Austin Chronicle’s Eric Goodman that MLS published roster information for all MLS players.\nI downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. The code is here.\nAs of May 3, 2024 this is a second pass and it still could use some Quality Checks. I’ve looked over rosters pretty well.\nThe others file hasn’t had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter @crit.\nKNOWN ISSUES: In the others file if a player has more than one slot designation, then they appear more than once. This is fixable and I’m working on it."
   },
   {
     "objectID": "index.html#published-files",
     "href": "index.html#published-files",
     "title": "MLS Player Rosters",
     "section": "Published files",
-    "text": "Published files\n\nrosters.csv include the senior, supplemental and off-roster player listings for each team.\nothers.csv include the international slots, designated players, U22 players and unavailable players. This also includes “Notes” designations as outlined below.\n\nI do aim to combine these two files in a meaningful way.\n\nRoster notes\n\nnotes_young (Young DP) Indicates a Young Designated Player. (This wasn’t really explained on the profiles).\nnotes_unavail *Indicates player is currently unavailable, and club may receive roster/international spot relief, but not Salary Budget relief unless otherwise determined pursuant to the loan agreement.\nnotes_notam ^Player cannot be converted from a Designated Player to a non-Designated Player by using Targeted Allocation Money.\nnotes_can +In addition to the International Roster Slots, each Canadian Club is permitted to designate up to three International Players who have been under contract with MLS and registered with one or more Canadian clubs for at least one year who will not count toward the club’s International Roster Slots.\nOff-roster Homegrown players can appear in MLS matches via a Short-Term Agreement."
+    "text": "Published files\n\nrosters.csv include the senior, supplemental and off-roster player listings for each team.\nothers.csv include the international slots, designated players, U22 players and unavailable players. This also includes “Notes” designations as outlined below. See above.\n\n\nRoster notes\n\nnotes_young (Young DP) Indicates a Young Designated Player. (This wasn’t really explained on the profiles).\nnotes_unavail *Indicates player is currently unavailable, and club may receive roster/international spot relief, but not Salary Budget relief unless otherwise determined pursuant to the loan agreement.\nnotes_notam ^Player cannot be converted from a Designated Player to a non-Designated Player by using Targeted Allocation Money.\nnotes_can +In addition to the International Roster Slots, each Canadian Club is permitted to designate up to three International Players who have been under contract with MLS and registered with one or more Canadian clubs for at least one year who will not count toward the club’s International Roster Slots.\nOff-roster Homegrown players can appear in MLS matches via a Short-Term Agreement."
   },
   {
     "objectID": "index.html#how-this-was-done",
@@ -60,7 +60,7 @@
     "href": "02-quality.html#can-i-join-these-lists-somehow",
     "title": "Quality checks",
     "section": "Can I join these lists somehow?",
-    "text": "Can I join these lists somehow?\nIt may be possible, but not not easily. If I try a simple join, I get duplicates if a player is on more than one “others” list.\n\nrosters |&gt; \n  left_join(others, by = join_by(club_short, name))\n\n\n  \n\n\n\n\nPossible future solution\nI might be able to do this one designation at a time\n\nStart with the roster\nFilter others to a specific player_type designation\nleft_join to bring over the player_type\nrename that new column to be the specific player_type\nrepeat for the other designations\n\nI’ll work on this next, but I want to push these changes today."
+    "text": "Can I join these lists somehow?\nIt may be possible, but not not easily. If I try a simple join, I get duplicates if a player is on more than one “others” list.\n\nrosters |&gt; \n  left_join(others, by = join_by(club_short, name))\n\n\n  \n\n\n\n\nPossible future solution\nI might be able to do this one designation at a time\n\nStart with the roster\nFilter others to a specific player_type designation\nleft_join to bring over the player_type\nrename that new column to be the specific player_type\nrepeat for the other designations\n\nLet’s try this … ah there is an issue I need to address.\n\nothers |&gt; \n  # select(!player_type) |&gt; \n  # distinct() |&gt; \n  # count(club_short,name, sort = T)\n  filter(name == \"Hernán López\")"
   },
   {
     "objectID": "01-cleaning-roster.html",
@@ -109,7 +109,7 @@
     "href": "01-cleaning-other.html",
     "title": "Cleaning player designations",
     "section": "",
-    "text": "The “Other” player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.\nThis is the second file I tackled, so there is more explanation of some techniques in Cleaning roster."
+    "text": "THERE IS A KNOWN ISSUE HERE WHERE PLAYERS ARE DUPLICATED WHEN THEY HAVE MORE THAN ONE DESIGNATION. I’M WORKING ON IT.\nThe “Other” player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.\nThis is the second file I tackled, so there is more explanation of some techniques in Cleaning roster."
   },
   {
     "objectID": "01-cleaning-other.html#setup",

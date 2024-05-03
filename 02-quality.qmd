@@ -100,5 +100,33 @@ I might be able to do this one designation at a time
 - rename that new column to be the specific player_type
 - repeat for the other designations
 
-I'll work on this next, but I want to push these changes today.
+Let's try this ... ah there is an issue I need to address.
+
+```{r}
+others |> 
+  # select(!player_type) |> 
+  # distinct() |> 
+  # count(club_short,name, sort = T)
+  filter(name == "Hernán López")
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

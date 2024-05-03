@@ -341,7 +341,21 @@ $ notes_can     &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FAL
 <li>rename that new column to be the specific player_type</li>
 <li>repeat for the other designations</li>
 </ul>
-<p>I’ll work on this next, but I want to push these changes today.</p>
+<p>Let’s try this … ah there is an issue I need to address.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>others <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select(!player_type) |&gt; </span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># distinct() |&gt; </span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># count(club_short,name, sort = T)</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">==</span> <span class="st">"Hernán López"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["club_short"],"name":[1],"type":["chr"],"align":["left"]},{"label":["player_type"],"name":[2],"type":["chr"],"align":["left"]},{"label":["name"],"name":[3],"type":["chr"],"align":["left"]},{"label":["notes_young"],"name":[4],"type":["lgl"],"align":["right"]},{"label":["notes_unavail"],"name":[5],"type":["lgl"],"align":["right"]},{"label":["notes_notam"],"name":[6],"type":["lgl"],"align":["right"]},{"label":["notes_can"],"name":[7],"type":["lgl"],"align":["right"]}],"data":[{"1":"SJ","2":"INTERNATIONAL SLOT","3":"Hernán López","4":"FALSE","5":"TRUE","6":"FALSE","7":"FALSE"},{"1":"SJ","2":"DESIGNATED PLAYERS","3":"Hernán López","4":"FALSE","5":"FALSE","6":"TRUE","7":"FALSE"},{"1":"SJ","2":"UNAVAILABLE PLAYERS","3":"Hernán López","4":"FALSE","5":"FALSE","6":"FALSE","7":"FALSE"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
 
 
 </section>

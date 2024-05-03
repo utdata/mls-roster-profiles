@@ -2,6 +2,8 @@
 title: "Cleaning player designations"
 ---
 
+> THERE IS A KNOWN ISSUE HERE WHERE PLAYERS ARE DUPLICATED WHEN THEY HAVE MORE THAN ONE DESIGNATION. I'M WORKING ON IT.
+
 The "Other" player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.
 
 This is the second file I tackled, so there is more explanation of some techniques in [Cleaning roster](01-cleaning-roster.qmd).

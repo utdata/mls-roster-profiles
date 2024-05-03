@@ -7,16 +7,16 @@ I found out from the Austin Chronicle's [Eric Goodman](https://x.com/Goodman/sta
 
 I downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. [The code is here](https://github.com/utdata/mls-roster-profiles/).
 
-As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I've looked over `rosters` pretty well. The `others` file hasn't had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter [@crit](https://twitter.com/crit).
+As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I've looked over `rosters` pretty well.
 
-**FOR INSTANCE:** At first I was missing some teams in the "others" file because of some Pinpoint issues, but I _think_ I have fixed them.
+The `others` file hasn't had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter [@crit](https://twitter.com/crit).
+
+**KNOWN ISSUES**: In the `others` file if a player has more than one slot designation, then they appear more than once. This is fixable and I'm working on it.
 
 ## Published files
 
 - [rosters.csv](data-out/rosters.csv) include the senior, supplemental and off-roster player listings for each team.
-- [others.csv](data-out/others.csv) include the international slots, designated players, U22 players and unavailable players. This also includes "Notes" designations as outlined below.
-
-I do aim to combine these two files in a meaningful way.
+- ~~[others.csv](data-out/others.csv) include the international slots, designated players, U22 players and unavailable players. This also includes "Notes" designations as outlined below.~~ See above.
 
 ### Roster notes
 

@@ -163,15 +163,15 @@ ul.task-list li input[type="checkbox"] {
 
 <p>I found out from the Austin Chronicle’s <a href="https://x.com/Goodman/status/1786068099470446775">Eric Goodman</a> that MLS published roster information <a href="https://mlssoccer.app.box.com/s/e8eu9jpgtk09j03ynasb6zpd6hur37yk">for all MLS players</a>.</p>
 <p>I downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. <a href="https://github.com/utdata/mls-roster-profiles/">The code is here</a>.</p>
-<p>As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I’ve looked over <code>rosters</code> pretty well. The <code>others</code> file hasn’t had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter <a href="https://twitter.com/crit"><span class="citation" data-cites="crit">@crit</span></a>.</p>
-<p><strong>FOR INSTANCE:</strong> At first I was missing some teams in the “others” file because of some Pinpoint issues, but I <em>think</em> I have fixed them.</p>
+<p>As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I’ve looked over <code>rosters</code> pretty well.</p>
+<p>The <code>others</code> file hasn’t had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter <a href="https://twitter.com/crit"><span class="citation" data-cites="crit">@crit</span></a>.</p>
+<p><strong>KNOWN ISSUES</strong>: In the <code>others</code> file if a player has more than one slot designation, then they appear more than once. This is fixable and I’m working on it.</p>
 <section id="published-files" class="level2">
 <h2 class="anchored" data-anchor-id="published-files">Published files</h2>
 <ul>
 <li><a href="data-out/rosters.csv">rosters.csv</a> include the senior, supplemental and off-roster player listings for each team.</li>
-<li><a href="data-out/others.csv">others.csv</a> include the international slots, designated players, U22 players and unavailable players. This also includes “Notes” designations as outlined below.</li>
+<li><del><a href="data-out/others.csv">others.csv</a> include the international slots, designated players, U22 players and unavailable players. This also includes “Notes” designations as outlined below.</del> See above.</li>
 </ul>
-<p>I do aim to combine these two files in a meaningful way.</p>
 <section id="roster-notes" class="level3">
 <h3 class="anchored" data-anchor-id="roster-notes">Roster notes</h3>
 <ul>
