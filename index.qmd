@@ -5,7 +5,7 @@ author: "Christian McDonald"
 
 I found out from the Austin Chronicle's [Eric Goodman](https://x.com/Goodman/status/1786068099470446775) that MLS published roster information [for all MLS players](https://mlssoccer.app.box.com/s/e8eu9jpgtk09j03ynasb6zpd6hur37yk).
 
-I downloaded the rosters in hopes of extracting the data.
+I downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. [The code is here](https://github.com/utdata/mls-roster-profiles/).
 
 As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I've looked over `rosters` pretty well. The `others` file hasn't had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter [@crit](https://twitter.com/crit).
 
