@@ -1,12 +1,10 @@
 ---
-title: "Cleaning player designations"
+title: "Clean other designations"
 ---
 
-> THERE IS A KNOWN ISSUE HERE WHERE PLAYERS ARE DUPLICATED WHEN THEY HAVE MORE THAN ONE DESIGNATION. I'M WORKING ON IT.
+The "Other" player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions. There have been other cleaning challenges to work through.
 
-The "Other" player type designations did not come out of pinpoint as cleanly as the main rosters. I have to pull them together based on different extractions.
-
-This is the second file I tackled, so there is more explanation of some techniques in [Cleaning roster](01-cleaning-roster.qmd).
+This is the second file I tackled, so there is more explanation of some techniques in [Clean roster](01-01-clean-roster.qmd).
 
 ## Setup
 
@@ -30,7 +28,6 @@ others_01 <- read_csv("data-raw/pinpoint/Other.csv") |> clean_names()
 others_02 <- read_csv("data-raw/pinpoint/Other_2.csv") |> clean_names()
 
 ```
-
 
 ## Make short club name function
 
@@ -115,7 +112,7 @@ others_combo |>
 
 ## Adding player_type variable
 
-This sets the player category. This is fully explained in [the roster cleaning](01-cleaning-roster.qmd).
+This sets the player category. This is fully explained in roster cleaning.
 
 ```{r}
 others_type <- others_combo |> 
@@ -124,7 +121,7 @@ others_type <- others_combo |>
     player_type = case_when(
       is.na(lag(club_short)) ~ "INTERNATIONAL SLOT",
       lag(club_short) != club_short ~ "INTERNATIONAL SLOT",
-      str_detect(name, "[A-Z]{3}") ~ name,
+      str_detect(name, "[A-Z]{3}") ~ name |> str_trim(),
       .default = NA
     )
   ) |>
@@ -136,12 +133,52 @@ others_type <- others_combo |>
 others_type
 ```
 
+## Build a clean name
+
+And now I clean the names to remove the character that signifies the notes. I print them out to check them. We do this here because it might help us later.
+
+```{r}
+others_name_fixes <- others_type |> 
+  mutate(
+    name_clean = str_remove_all(name, "\\(Young DP\\)|\\^|\\*|\\+") |> str_trim()
+  ) |>
+  relocate(name_clean, .before = name)
+
+others_name_fixes
+```
+
+## Set player type variables
+
+We need to add a t/f value for each of the player designation types.
+
+Let's first see what they are:
+
+```{r}
+others_name_fixes |> 
+  count(player_type)
+```
+
+Then lets add variables based on them.
+
+```{r}
+others_types <- others_name_fixes |> 
+  mutate(
+    type_dp = if_else(player_type == "DESIGNATED PLAYERS", T, F),
+    type_u22 = if_else(player_type == "INITIATIVE PLAYERS", T, F),
+    type_int = if_else(player_type == "INTERNATIONAL SLOT", T, F),
+    type_inj = if_else(player_type == "SEASON-ENDING INJURY LIST", T, F),
+    type_una = if_else(player_type == "UNAVAILABLE PLAYERS", T, F),
+  )
+
+others_types
+```
+
 ## Add notes variables
 
 There are several note designations that players can have in these lists. This section creates categories based on those notes. [See the index](index.qmd) to learn more about what the notes mean.
 
 ```{r}
-others_notes <- others_type |> 
+others_notes <- others_types |> 
   mutate(
     notes_young = if_else(str_detect(name, "Young DP"), TRUE, FALSE),
     notes_unavail = if_else(str_detect(name, "\\*"), TRUE, FALSE),
@@ -152,52 +189,40 @@ others_notes <- others_type |>
 others_notes
 ```
 
-And now I clean the names to remove the character that signifies the notes. I print them out to check them.
-
 ```{r}
-others_notes_fixes <- others_notes |> 
-  mutate(
-    name_clean = str_remove_all(name, "\\(Young DP\\)|\\^|\\*|\\+")
-  ) |>
-  relocate(name_clean, .before = name)
-
-others_notes_fixes |> select(starts_with("name"), starts_with("notes"))  
+others_notes |> 
+  filter(name_clean == "Thiago Almada")
 ```
 
-## Fix player_type values
+## Compress the records
 
-In the category cleaning, I lost "U22" from "U22 INITIATIVE PLAYERS". I add it back.
+The challenge here is I need to combine rows to where there is one row for each player, but has all the correct "TRUE" values for all the notes and types.
 
-First checking them all.
+Let's first show the challenge. Note how there is more than one row for Giorgios Giakoumakis and not all the `type_` and `notes_` variables are consistent.
 
 ```{r}
-others_notes_fixes |> 
-  count(player_type)
+others_notes |> 
+  select(!c(player_type, no, name)) |> 
+  arrange(club_short, name_clean) |> 
+  head(10)
 ```
 
-Then make fixes.
+And now we fix it ... we first git rid of some columns we don't need, then use `summarize_if(is.logical, any)` to collapse the rows to keep all the true values. H/T to Thomas Cason for this tip.
 
 ```{r}
-others_type_fixes <- others_notes_fixes |> 
-  mutate(
-    player_type = case_match(
-      player_type,
-      "INITIATIVE PLAYERS" ~ "U22 INITIATIVE PLAYERS",
-      .default = player_type
-    )
-  )
+others_compressed <- others_notes |> 
+  select(!c(player_type, no, name)) |> 
+  group_by(club_short, name_clean) |>  summarize_if(is.logical, any)
 
-others_type_fixes |> 
-  count(player_type)
+others_compressed  
 ```
 
 ## Tighten columns
 
-This removes columns we don't need anymore. This includes the problematic `no` variable which doesn't really mean anything.
+Actually I need to do is rename a column.
 
 ```{r}
-others_clean <- others_type_fixes |> 
-  select(!c(name, no)) |> 
+others_clean <- others_compressed |> 
   rename(name = name_clean)
 
 others_clean |> glimpse()

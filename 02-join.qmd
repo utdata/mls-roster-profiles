@@ -1,0 +1,57 @@
+---
+title: "Join into profiles"
+---
+
+This notebooks takes the two cleaned files and joins them together into a single file.
+
+## Setup
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(janitor)
+```
+
+## Import
+
+```{r}
+rosters <- read_rds("data-processed/rosters.rds")
+others <- read_rds("data-processed/others.rds")
+```
+
+
+## Joining the two lists
+
+Now that the data has been cleaned properly, this isn't as huge a deal.
+
+```{r}
+roster_profiles_joined <- rosters |> 
+  left_join(others, by = join_by(club_short, name))
+
+roster_profiles_joined
+```
+
+And now to fill in missing false values. This is an interesting and complex maneuver.
+
+Change all the variables where the datatype is logical, and use replace_na() to fill black valuse with FALSE.
+
+```{r}
+roster_profiles_clean <- roster_profiles_joined |> 
+  mutate(
+    across(where(is.logical), ~ replace_na(.x, FALSE) )
+  )
+
+roster_profiles_clean
+```
+
+## Export
+
+```{r}
+roster_profiles_clean |> write_csv("data-out/profiles.csv")
+roster_profiles_clean |> write_rds("data-processed/profiles.rds")
+```
+
+

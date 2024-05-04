@@ -3,22 +3,69 @@ title: "MLS Player Rosters"
 author: "Christian McDonald"
 ---
 
-I found out from the Austin Chronicle's [Eric Goodman](https://x.com/Goodman/status/1786068099470446775) that MLS published roster information [for all MLS players](https://mlssoccer.app.box.com/s/e8eu9jpgtk09j03ynasb6zpd6hur37yk).
+I found out on May 2, 2024 from the Austin Chronicle's [Eric Goodman](https://x.com/Goodman/status/1786068099470446775) that MLS published roster information [for all MLS players](https://mlssoccer.app.box.com/s/e8eu9jpgtk09j03ynasb6zpd6hur37yk).
 
 I downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. [The code is here](https://github.com/utdata/mls-roster-profiles/).
 
-As of May 3, 2024 this is a second pass and it still could use some Quality Checks. I've looked over `rosters` pretty well.
+As of May 3, 2024 this is a third pass and I'm sure it could benefit from more Quality Checks. I've found and fixed many problems and I wouldn't be surprised if I missed things.
 
-The `others` file hasn't had as much scrutiny. If you see any problems add an issue in Github or ping me on X/Twitter [@crit](https://twitter.com/crit).
+## Known issues
 
-**KNOWN ISSUES**: In the `others` file if a player has more than one slot designation, then they appear more than once. This is fixable and I'm working on it.
+There are no known issues at this time. If you see any problems add an issue in Github or ping me on X/Twitter [@crit](https://twitter.com/crit).
 
-## Published files
+That said I do have some to-do lists:
 
-- [rosters.csv](data-out/rosters.csv) include the senior, supplemental and off-roster player listings for each team.
-- ~~[others.csv](data-out/others.csv) include the international slots, designated players, U22 players and unavailable players. This also includes "Notes" designations as outlined below.~~ See above.
+- Add a full club name
+- Turn the roster_type into a factor
 
-### Roster notes
+## Example
+
+Below is an image from one team plucked from the [combined file](data-raw/Club-Roster-Profiles-2024-01-01.pdf).
+
+![Example profile](data-raw/example-profile.png)
+
+## Published file
+
+- [profiles.csv](data-out/profiles.csv) is the result of this cleaning effort, where there is a single row for each player with flags for their roster player designations and notes.
+
+This is a glimpse of the first two records from Austin FC so you can see all the column names, data types and example values.
+
+```text
+$ club_short         <chr> "ATX", "ATX"
+$ roster_type        <chr> "SENIOR ROSTER", "SENIOR ROSTER"
+$ name               <chr> "Guilherme Biro", "Julio Cascante"
+$ roster_designation <chr> NA, "TAM Player"
+$ current_status     <chr> NA, NA
+$ contract_thru      <chr> "2026", "2025"
+$ option_years       <chr> "2027", "2026"
+$ type_dp            <lgl> FALSE, FALSE
+$ type_u22           <lgl> FALSE, FALSE
+$ type_int           <lgl> TRUE, FALSE
+$ type_inj           <lgl> FALSE, FALSE
+$ type_una           <lgl> FALSE, FALSE
+$ notes_young        <lgl> FALSE, FALSE
+$ notes_unavail      <lgl> FALSE, FALSE
+$ notes_notam        <lgl> FALSE, FALSE
+$ notes_can          <lgl> FALSE, FALSE
+```
+
+The profiles file was compiled from bits and pieces with lots of cleaning along the way. See "How this was done" below.
+
+The roster types have been added as individual logical fields because a player can hold more than one type or designation. More about those ...
+
+### Player types
+
+If true, the player fits the player type designation listed on the right side of the original profiles.
+
+- `type_dp`: DESIGNATED PLAYER
+- `type_u22`: U22 INITIATIVE PLAYER
+- `type_int`: INTERNATIONAL SLOT
+- `type_inj`: SEASON-ENDING INJURY
+- `type_una`: UNAVAILABLE PLAYER
+
+### Notes
+
+If true, the player fits the notes parameter.
 
 - `notes_young` (Young DP) Indicates a Young Designated Player. (This wasn't really explained on the profiles).
 - `notes_unavail` *Indicates player is currently unavailable, and club may receive roster/international spot relief, but not Salary Budget relief unless otherwise determined pursuant to the loan agreement.
@@ -30,20 +77,22 @@ The `others` file hasn't had as much scrutiny. If you see any problems add an is
 
 ### Pinpoint extract 
 
-I thought Google Pinpoint might be the easiest way to extract the data. Pinpoint wants individual files instead of one file with a bunch of pages, so I split the single document into individual ones for each team. I used the "table" processing to create two raw csv files:
+I thought Google Pinpoint might be the easiest way to extract the data. Pinpoint wants individual files instead of one file with a bunch of pages, so I manually split the single document into individual files for each team. Once in Pinpoint I used Extract Structured Data tool with "table" processing to create two raw csv files:
 
 - `data-raw/pinpoint/Rosters.csv` has the main roster that is on the left side of the page.
 - `data-raw/pinpoint/Other.csv` has all the other player designations listed on the right side of the page.
 
 In the case of this "other" data I had to do more than one pass with Pinpoint to catch all the teams so there are multiple "raw" files. They are all in [the repo](https://github.com/utdata/mls-roster-profiles/) in the data-raw folder.
 
-I had to do combine some of those raw files to get what I hope is a full set of everything.
-
 ### Cleaning
 
 All other cleaning was done in R in Quarto notebooks:
 
-- [Cleaning Roster](01-cleaning-roster.qmd)
-- [Cleaning Other](01-cleaning-other.qmd)
+- [Clean Roster](01-01-clean-roster.qmd): Cleans the rosters section
+- [Clean Other](01-02-clean-other.qmd): Cleans the other designations
+- [Join files](02-join.qmd): Joins and cleans the two into the profiles
+- [Quality checks](03-quality-checks.qmd): Used as I was checking things
 
 The cleaned csv files are exported into the `data-out/` folder in [the repo](https://github.com/utdata/mls-roster-profiles/). There are also some .rds files in `data-processed/`
+
+

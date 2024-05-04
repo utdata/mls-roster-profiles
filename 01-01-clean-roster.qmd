@@ -1,5 +1,5 @@
 ---
-title: "Cleaning rosters"
+title: "Clean rosters"
 ---
 
 This notebook is to clean the main roster listed on the left part of [the PDF](data-raw/Club-Roster-Profiles-2024-01-01.pdf).
