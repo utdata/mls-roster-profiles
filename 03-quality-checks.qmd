@@ -82,7 +82,7 @@ The last check of everything
 ```{r}
 profiles <- read_rds("data-processed/profiles.rds")
 
-profiles
+profiles |> filter(club_short == "CLB")
 ```
 
 Example for index page

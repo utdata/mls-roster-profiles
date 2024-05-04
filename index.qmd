@@ -15,8 +15,7 @@ There are no known issues at this time. If you see any problems add an issue in 
 
 That said I do have some to-do lists:
 
-- Add a full club name
-- Turn the roster_type into a factor
+- Turn the roster_type into a factor?
 
 ## Example
 
@@ -32,6 +31,7 @@ This is a glimpse of the first two records from Austin FC so you can see all the
 
 ```text
 $ club_short         <chr> "ATX", "ATX"
+$ club               <chr> "Austin FC", "Austin FC"
 $ roster_type        <chr> "SENIOR ROSTER", "SENIOR ROSTER"
 $ name               <chr> "Guilherme Biro", "Julio Cascante"
 $ roster_designation <chr> NA, "TAM Player"
