@@ -139,12 +139,25 @@ roster_supp <- roster_subtype |>
 roster_supp |> count(roster_type)
 ```
 
+### Stray pipe in value
+
+[@philwest](https://x.com/philwest/status/1786748847055675643) noted there is a stray | character in one of the fields. I fix that here.
+
+```{r}
+roster_desig_fix <- roster_supp |> 
+  mutate(
+    roster_designation = str_remove(roster_designation, "\\|") |> str_trim()
+  )
+```
+
+
+
 ## Make a list of teams
 
 When I later work on the "other" player designations, I need to see if I have all the teams represented in my files. I create a list of those teams here so I can use it later.
 
 ```{r}
-clubs <- roster_supp |> 
+clubs <- roster_desig_fix |> 
   distinct(club_short)
 
 clubs
@@ -155,8 +168,8 @@ clubs
 Saving our the csv file for posterity. The rds file is the same data but in R's native format. Also save out the clubs for later.
 
 ```{r}
-roster_supp |> write_csv("data-out/rosters.csv")
-roster_supp |> write_rds("data-processed/rosters.rds")
+roster_desig_fix |> write_csv("data-out/rosters.csv")
+roster_desig_fix |> write_rds("data-processed/rosters.rds")
 clubs |> write_rds("data-processed/clubs.rds")
 ```
 

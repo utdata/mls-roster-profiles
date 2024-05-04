@@ -167,6 +167,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#checking-season-ending-list" id="toc-checking-season-ending-list" class="nav-link" data-scroll-target="#checking-season-ending-list">Checking season-ending list</a></li>
   </ul></li>
   <li><a href="#profiles-check" id="toc-profiles-check" class="nav-link" data-scroll-target="#profiles-check">Profiles check</a></li>
+  <li><a href="#stray-header" id="toc-stray-header" class="nav-link" data-scroll-target="#stray-header">Stray header?</a></li>
   </ul>
 </nav>
     </div>
@@ -199,6 +200,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>In the <a href="01-cleaning-roster.qmd">Cleaning roster</a> notebook the <code>roster_type</code> == “SUPPLEMENTAL SPOT 31” was changed to just “SUPPLEMENTAL SPOT” for consistency. The roster has the “31” in all cases but seems odd to keep here. I can change later if needed.</li>
 <li>In <code>others</code> there were initially some missing players. I ended up piecing everything together in <a href="01-cleaning-other.qmd">Cleaning other</a>.</li>
 <li>Also in <code>others</code> I had to rework how players were awarded different types and notes because in the original list players can be listed more than once with different designations. I had to collapse all of that.</li>
+<li></li>
 </ul>
 <p>There aren’t any known issues as of now, but I’m keeping this notebook around for now.</p>
 </section>
@@ -357,6 +359,21 @@ $ notes_can          &lt;lgl&gt; FALSE, FALSE</code></pre>
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
 {"columns":[{"label":["club_short"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"ATL","2":"30"},{"1":"ATX","2":"25"},{"1":"CHI","2":"31"},{"1":"CIN","2":"31"},{"1":"CLB","2":"24"},{"1":"CLT","2":"33"},{"1":"COL","2":"31"},{"1":"DAL","2":"35"},{"1":"DC","2":"27"},{"1":"HOU","2":"28"},{"1":"LA","2":"27"},{"1":"LAFC","2":"26"},{"1":"MIA","2":"35"},{"1":"MIN","2":"30"},{"1":"MTL","2":"32"},{"1":"NE","2":"30"},{"1":"NSH","2":"29"},{"1":"NY","2":"30"},{"1":"NYC","2":"33"},{"1":"ORL","2":"30"},{"1":"PHI","2":"33"},{"1":"POR","2":"25"},{"1":"RSL","2":"38"},{"1":"SEA","2":"27"},{"1":"SJ","2":"34"},{"1":"SKC","2":"28"},{"1":"STL","2":"29"},{"1":"TOR","2":"30"},{"1":"VAN","2":"27"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+</section>
+<section id="stray-header" class="level2">
+<h2 class="anchored" data-anchor-id="stray-header">Stray header?</h2>
+<p>if you do a sort by roster designation, you’ll see a stray | by a U22 designated player at the top, but otherwise, it reveals DPs first in a list you can then secondarily sort by team, which is muy helpful.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>profiles <span class="sc">|&gt;</span> <span class="fu">filter</span>(type_u22 <span class="sc">==</span> T) <span class="sc">|&gt;</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">==</span> <span class="st">"Maximiliano David Ayala"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["club_short"],"name":[1],"type":["chr"],"align":["left"]},{"label":["club"],"name":[2],"type":["chr"],"align":["left"]},{"label":["roster_type"],"name":[3],"type":["chr"],"align":["left"]},{"label":["name"],"name":[4],"type":["chr"],"align":["left"]},{"label":["roster_designation"],"name":[5],"type":["chr"],"align":["left"]},{"label":["current_status"],"name":[6],"type":["chr"],"align":["left"]},{"label":["contract_thru"],"name":[7],"type":["chr"],"align":["left"]},{"label":["option_years"],"name":[8],"type":["chr"],"align":["left"]},{"label":["type_dp"],"name":[9],"type":["lgl"],"align":["right"]},{"label":["type_u22"],"name":[10],"type":["lgl"],"align":["right"]},{"label":["type_int"],"name":[11],"type":["lgl"],"align":["right"]},{"label":["type_inj"],"name":[12],"type":["lgl"],"align":["right"]},{"label":["type_una"],"name":[13],"type":["lgl"],"align":["right"]},{"label":["notes_young"],"name":[14],"type":["lgl"],"align":["right"]},{"label":["notes_unavail"],"name":[15],"type":["lgl"],"align":["right"]},{"label":["notes_notam"],"name":[16],"type":["lgl"],"align":["right"]},{"label":["notes_can"],"name":[17],"type":["lgl"],"align":["right"]}],"data":[{"1":"POR","2":"Portland Timbers","3":"SENIOR ROSTER","4":"Maximiliano David Ayala","5":"U22 Initiative","6":"NA","7":"2025","8":"2026","9":"FALSE","10":"TRUE","11":"FALSE","12":"FALSE","13":"FALSE","14":"FALSE","15":"FALSE","16":"FALSE","17":"FALSE"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>

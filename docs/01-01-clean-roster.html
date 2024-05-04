@@ -166,6 +166,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#make-a-club-name" id="toc-make-a-club-name" class="nav-link" data-scroll-target="#make-a-club-name">Make a club name</a></li>
   <li><a href="#make-roster-designation" id="toc-make-roster-designation" class="nav-link" data-scroll-target="#make-roster-designation">Make roster designation</a></li>
   <li><a href="#supplemental-spot-name" id="toc-supplemental-spot-name" class="nav-link" data-scroll-target="#supplemental-spot-name">Supplemental spot name</a></li>
+  <li><a href="#stray-pipe-in-value" id="toc-stray-pipe-in-value" class="nav-link" data-scroll-target="#stray-pipe-in-value">Stray pipe in value</a></li>
   </ul></li>
   <li><a href="#make-a-list-of-teams" id="toc-make-a-list-of-teams" class="nav-link" data-scroll-target="#make-a-list-of-teams">Make a list of teams</a></li>
   <li><a href="#export-the-files" id="toc-export-the-files" class="nav-link" data-scroll-target="#export-the-files">Export the files</a></li>
@@ -380,15 +381,25 @@ $ option_years       &lt;chr&gt; "2026", NA, "2026", "2026", "2028", "2025", "20
 </div>
 </div>
 </section>
+<section id="stray-pipe-in-value" class="level3">
+<h3 class="anchored" data-anchor-id="stray-pipe-in-value">Stray pipe in value</h3>
+<p><a href="https://x.com/philwest/status/1786748847055675643"><span class="citation" data-cites="philwest">@philwest</span></a> noted there is a stray | character in one of the fields. I fix that here.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>roster_desig_fix <span class="ot">&lt;-</span> roster_supp <span class="sc">|&gt;</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">roster_designation =</span> <span class="fu">str_remove</span>(roster_designation, <span class="st">"</span><span class="sc">\\</span><span class="st">|"</span>) <span class="sc">|&gt;</span> <span class="fu">str_trim</span>()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
 </section>
 <section id="make-a-list-of-teams" class="level2">
 <h2 class="anchored" data-anchor-id="make-a-list-of-teams">Make a list of teams</h2>
 <p>When I later work on the “other” player designations, I need to see if I have all the teams represented in my files. I create a list of those teams here so I can use it later.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>clubs <span class="ot">&lt;-</span> roster_supp <span class="sc">|&gt;</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(club_short)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>clubs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>clubs <span class="ot">&lt;-</span> roster_desig_fix <span class="sc">|&gt;</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(club_short)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>clubs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div data-pagedtable="false">
   <script data-pagedtable-source="" type="application/json">
@@ -402,9 +413,9 @@ $ option_years       &lt;chr&gt; "2026", NA, "2026", "2026", "2028", "2025", "20
 <h2 class="anchored" data-anchor-id="export-the-files">Export the files</h2>
 <p>Saving our the csv file for posterity. The rds file is the same data but in R’s native format. Also save out the clubs for later.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>roster_supp <span class="sc">|&gt;</span> <span class="fu">write_csv</span>(<span class="st">"data-out/rosters.csv"</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>roster_supp <span class="sc">|&gt;</span> <span class="fu">write_rds</span>(<span class="st">"data-processed/rosters.rds"</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>clubs <span class="sc">|&gt;</span> <span class="fu">write_rds</span>(<span class="st">"data-processed/clubs.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>roster_desig_fix <span class="sc">|&gt;</span> <span class="fu">write_csv</span>(<span class="st">"data-out/rosters.csv"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>roster_desig_fix <span class="sc">|&gt;</span> <span class="fu">write_rds</span>(<span class="st">"data-processed/rosters.rds"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>clubs <span class="sc">|&gt;</span> <span class="fu">write_rds</span>(<span class="st">"data-processed/clubs.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

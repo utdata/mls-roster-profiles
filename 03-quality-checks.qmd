@@ -9,6 +9,7 @@ Because we are extracting this data from PDF's I used this file to troubleshoot 
 - In the [Cleaning roster](01-cleaning-roster.qmd) notebook the `roster_type` == "SUPPLEMENTAL SPOT 31" was changed to just "SUPPLEMENTAL SPOT" for consistency. The roster has the "31" in all cases but seems odd to keep here. I can change later if needed.
 - In `others` there were initially some missing players. I ended up piecing everything together in [Cleaning other](01-cleaning-other.qmd).
 - Also in `others` I had to rework how players were awarded different types and notes because in the original list players can be listed more than once with different designations. I had to collapse all of that.
+- 
 
 There aren't any known issues as of now, but I'm keeping this notebook around for now.
 
@@ -99,4 +100,12 @@ profiles |>
   count(club_short)
 ```
 
+## Stray header?
+
+if you do a sort by roster designation, you'll see a stray | by a U22 designated player at the top, but otherwise, it reveals DPs first in a list you can then secondarily sort by team, which is muy helpful.
+
+```{r}
+profiles |> filter(type_u22 == T) |> 
+  filter(name == "Maximiliano David Ayala")
+```
 
