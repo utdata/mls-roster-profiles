@@ -29,7 +29,7 @@ roster_raw <- read_csv("data-raw/pinpoint/Roster.csv") |> clean_names()
 
 ### Make short club name
 
-I first need to build a club name of some type, which I'm doing from the file name. I'm basing the short code based on another dataset I have [rws-mls-salaries](https://github.com/utdata/rwd-mls-salaries).
+I first need to build a club name of some type, which I'm doing from the file name. I'm basing the short code based on another dataset I have [mls-salaries](https://github.com/utdata/mls-salaries).
 
 I also move around the new column and remove the Pinpoint link variable no one can use anyway.
 
