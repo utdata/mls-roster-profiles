@@ -9,10 +9,10 @@ website:
     left:
       - href: index.qmd
         text: Home
+      - 03-search.qmd
       - 01-01-clean-roster.qmd
       - 01-02-clean-other.qmd
       - 02-join.qmd
-      - 03-quality.qmd
 
 format:
   html:

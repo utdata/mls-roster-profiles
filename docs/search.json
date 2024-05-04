@@ -49,46 +49,74 @@
     "text": "Stray header?\nif you do a sort by roster designation, you’ll see a stray | by a U22 designated player at the top, but otherwise, it reveals DPs first in a list you can then secondarily sort by team, which is muy helpful.\n\nprofiles |&gt; filter(type_u22 == T) |&gt; \n  filter(name == \"Maximiliano David Ayala\")"
   },
   {
-    "objectID": "01-01-clean-roster.html",
-    "href": "01-01-clean-roster.html",
-    "title": "Clean rosters",
+    "objectID": "02-join.html",
+    "href": "02-join.html",
+    "title": "Join into profiles",
     "section": "",
-    "text": "This notebook is to clean the main roster listed on the left part of the PDF.\nSee the home page about using Pinpoint to get to this point."
+    "text": "This notebooks takes the two cleaned files and joins them together into a single file."
   },
   {
-    "objectID": "01-01-clean-roster.html#setup",
-    "href": "01-01-clean-roster.html#setup",
-    "title": "Clean rosters",
+    "objectID": "02-join.html#setup",
+    "href": "02-join.html#setup",
+    "title": "Join into profiles",
     "section": "Setup",
     "text": "Setup\n\nlibrary(tidyverse)\nlibrary(janitor)"
   },
   {
-    "objectID": "01-01-clean-roster.html#import",
-    "href": "01-01-clean-roster.html#import",
-    "title": "Clean rosters",
+    "objectID": "02-join.html#import",
+    "href": "02-join.html#import",
+    "title": "Join into profiles",
     "section": "Import",
-    "text": "Import\nThis pulls in the first file that was exported from Pinpoint.\n\nroster_raw &lt;- read_csv(\"data-raw/pinpoint/Roster.csv\") |&gt; clean_names()\n\nRows: 929 Columns: 7\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (7): File Name, NAME, ROSTER DESIGNATION, CURRENT STATUS, CONTRACT THRU,...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
+    "text": "Import\n\nrosters &lt;- read_rds(\"data-processed/rosters.rds\")\nothers &lt;- read_rds(\"data-processed/others.rds\")"
   },
   {
-    "objectID": "01-01-clean-roster.html#roster-cleaning",
-    "href": "01-01-clean-roster.html#roster-cleaning",
-    "title": "Clean rosters",
-    "section": "Roster cleaning",
-    "text": "Roster cleaning\n\nMake short club name\nI first need to build a club name of some type, which I’m doing from the file name. I’m basing the short code based on another dataset I have mls-salaries.\nI also move around the new column and remove the Pinpoint link variable no one can use anyway.\n\nadd_short_name &lt;- roster_raw |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n\nadd_short_name |&gt; glimpse()\n\nRows: 929\nColumns: 6\n$ club_short         &lt;chr&gt; \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"A…\n$ name               &lt;chr&gt; \"Luis Abram\", \"Thiago Almada\", \"Josh Cohen\", \"Giorg…\n$ roster_designation &lt;chr&gt; \"TAM Player\", \"Young Designated Player\", NA, \"Desig…\n$ current_status     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, \"Unavailable - On Loan\"…\n$ contract_thru      &lt;chr&gt; \"2025\", \"2026\", \"2025\", \"2025\", \"2027\", \"2024\", \"20…\n$ option_years       &lt;chr&gt; \"2026\", NA, \"2026\", \"2026\", \"2028\", \"2025\", \"2025\",…\n\n\n\n\nMake a club name\n\nadd_long_name &lt;- add_short_name |&gt; \n  mutate(\n    club = case_match(\n      club_short,\n      \"ATL\" ~ \"Atlanta United\",\n      \"ATX\" ~ \"Austin FC\",\n      \"CHI\" ~ \"Chicago Fire FC\",\n      \"CIN\" ~ \"FC Cincinnati\",\n      \"CLB\" ~ \"Columbus Crew\",\n      \"CLT\" ~ \"Charlotte FC\",\n      \"COL\" ~ \"Colorado Rapids\",\n      \"DAL\" ~ \"FC Dallas\",\n      \"DC\" ~ \"D.C. United\",\n      \"HOU\" ~ \"Houston Dynamo FC\",\n      \"LA\" ~ \"LA Galaxy\",\n      \"LAFC\" ~ \"Los Angeles Football Club\",\n      \"MIA\" ~ \"Inter Miami FC\",\n      \"MIN\" ~ \"Minnesota United FC\",\n      \"MTL\" ~ \"CF Montréal\",\n      \"NE\" ~ \"New England Revolution\",\n      \"NSH\" ~ \"Nashville FC\",\n      \"NY\" ~ \"New York Red Bulls\",\n      \"NYC\" ~ \"New York City FC\",\n      \"ORL\" ~ \"Orlando City DC\",\n      \"PHI\" ~ \"Philadelphia Union\",\n      \"POR\" ~ \"Portland Timbers\",\n      \"RSL\" ~ \"Real Salt Lake\",\n      \"SEA\" ~ \"Seatle Sounders FC\",\n      \"SJ\" ~ \"San Jose Earthquakes\",\n      \"SKC\" ~ \"Sporting Kansas City\",\n      \"STL\" ~ \"St. Louis City SC\",\n      \"TOR\" ~ \"Toronto FC\",\n      \"VAN\" ~ \"Vancouver Whitecaps FC\",\n      .default = NA\n    )\n  ) |&gt; \n  relocate(club, .after = club_short)\n\nadd_long_name\n\n\n  \n\n\n\n\n\nMake roster designation\nThe roster is really split into different categories with an overline header. That’s bad data management so I create a roster_type variable to say what category they are in.\nI have to do a lot of work to get the player categories right. You’d have to run the code line by line to really see it, but I annotated the lines below.\n\nroster_subtype &lt;- add_long_name |&gt; \n  mutate(\n1    roster_type = case_when(\n2      is.na(lag(club_short)) ~ \"SENIOR ROSTER\",\n3      lag(club_short) != club_short ~ \"SENIOR ROSTER\",\n4      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n5  fill(roster_type) |&gt;\n6  relocate(roster_type, .after = club) |&gt;\n7  filter(!str_detect(name, \"[A-Z]{3}\"))\n\nroster_subtype\n\n\n1\n\nMake a roster_type variable\n\n2\n\nI use lag() to basically find the first empty row which is the top row and set roster_type to “SENIOR ROSTER”. This is just for the first row of the data. There are probably better ways to do this.\n\n3\n\nHere I find when a new row has a different team using lag(), and if so set that row to SENIOR ROSTER. This is a typical use of lag.\n\n4\n\nIf the name variable has three capital letters in a row then it is one of the categories (always in all caps) so I use name value in roster_type. This is telling me when a new roster category is starting.\n\n5\n\nThis fill() takes those roster categories and fills them down the blank rows until it hits another existing category. This gives every play their category.\n\n6\n\nI move the new column to closer to the front of the tibble.\n\n7\n\nI remove the category headers since we don’t need those anymore.\n\n\n\n\n\n  \n\n\n\n\n\nSupplemental spot name\nHere we rename SUPPLEMENTAL SPOT 31 to just SUPPLEMENTAL SPOT. It was inconsistent and I feel like the “31” needs explanation anyway. (No, I dunno what it means yet, but it is the only number used.)\n\nroster_supp &lt;- roster_subtype |&gt; \n  mutate(\n    roster_type = case_match(\n      roster_type,\n      \"SUPPLEMENTAL SPOT 31\" ~ \"SUPPLEMENTAL SPOT\",\n      .default = roster_type\n    )\n  )\n\nroster_supp |&gt; count(roster_type)\n\n\n  \n\n\n\n\n\nStray pipe in value\n@philwest noted there is a stray | character in one of the fields. I fix that here.\n\nroster_desig_fix &lt;- roster_supp |&gt; \n  mutate(\n    roster_designation = str_remove(roster_designation, \"\\\\|\") |&gt; str_trim()\n  )"
+    "objectID": "02-join.html#joining-the-two-lists",
+    "href": "02-join.html#joining-the-two-lists",
+    "title": "Join into profiles",
+    "section": "Joining the two lists",
+    "text": "Joining the two lists\nNow that the data has been cleaned properly, this isn’t as huge a deal.\n\nroster_profiles_joined &lt;- rosters |&gt; \n  left_join(others, by = join_by(club_short, name))\n\nroster_profiles_joined\n\n\n  \n\n\n\nAnd now to fill in missing false values. This is an interesting and complex maneuver.\nChange all the variables where the datatype is logical, and use replace_na() to fill black valuse with FALSE.\n\nroster_profiles_clean &lt;- roster_profiles_joined |&gt; \n  mutate(\n    across(where(is.logical), ~ replace_na(.x, FALSE) )\n  )\n\nroster_profiles_clean"
   },
   {
-    "objectID": "01-01-clean-roster.html#make-a-list-of-teams",
-    "href": "01-01-clean-roster.html#make-a-list-of-teams",
-    "title": "Clean rosters",
-    "section": "Make a list of teams",
-    "text": "Make a list of teams\nWhen I later work on the “other” player designations, I need to see if I have all the teams represented in my files. I create a list of those teams here so I can use it later.\n\nclubs &lt;- roster_desig_fix |&gt; \n  distinct(club_short)\n\nclubs"
+    "objectID": "02-join.html#export",
+    "href": "02-join.html#export",
+    "title": "Join into profiles",
+    "section": "Export",
+    "text": "Export\n\nroster_profiles_clean |&gt; write_csv(\"data-out/profiles.csv\")\nroster_profiles_clean |&gt; write_rds(\"data-processed/profiles.rds\")"
   },
   {
-    "objectID": "01-01-clean-roster.html#export-the-files",
-    "href": "01-01-clean-roster.html#export-the-files",
-    "title": "Clean rosters",
-    "section": "Export the files",
-    "text": "Export the files\nSaving our the csv file for posterity. The rds file is the same data but in R’s native format. Also save out the clubs for later.\n\nroster_desig_fix |&gt; write_csv(\"data-out/rosters.csv\")\nroster_desig_fix |&gt; write_rds(\"data-processed/rosters.rds\")\nclubs |&gt; write_rds(\"data-processed/clubs.rds\")"
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "MLS Player Rosters",
+    "section": "",
+    "text": "I found out on May 2, 2024 from the Austin Chronicle’s Eric Goodman that MLS published roster information for all MLS players.\nI downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. The code is here.\nAs of May 3, 2024 this is a third pass and I’m sure it could benefit from more Quality Checks. I’ve found and fixed many problems and I wouldn’t be surprised if I missed things."
+  },
+  {
+    "objectID": "index.html#known-issues",
+    "href": "index.html#known-issues",
+    "title": "MLS Player Rosters",
+    "section": "Known issues",
+    "text": "Known issues\nThere are no known issues at this time. If you see any problems add an issue in Github or ping me on X/Twitter @crit.\nThat said I do have some to-do lists:\n\nTurn the roster_type into a factor?"
+  },
+  {
+    "objectID": "index.html#example",
+    "href": "index.html#example",
+    "title": "MLS Player Rosters",
+    "section": "Example",
+    "text": "Example\nBelow is an image from one team plucked from the combined file.\n\n\n\nExample profile"
+  },
+  {
+    "objectID": "index.html#published-file",
+    "href": "index.html#published-file",
+    "title": "MLS Player Rosters",
+    "section": "Published file",
+    "text": "Published file\n\nprofiles.csv is the result of this cleaning effort, where there is a single row for each player with flags for their roster player designations and notes.\n\nThis is a glimpse of the first two records from Austin FC so you can see all the column names, data types and example values.\n$ club_short         &lt;chr&gt; \"ATX\", \"ATX\"\n$ club               &lt;chr&gt; \"Austin FC\", \"Austin FC\"\n$ roster_type        &lt;chr&gt; \"SENIOR ROSTER\", \"SENIOR ROSTER\"\n$ name               &lt;chr&gt; \"Guilherme Biro\", \"Julio Cascante\"\n$ roster_designation &lt;chr&gt; NA, \"TAM Player\"\n$ current_status     &lt;chr&gt; NA, NA\n$ contract_thru      &lt;chr&gt; \"2026\", \"2025\"\n$ option_years       &lt;chr&gt; \"2027\", \"2026\"\n$ type_dp            &lt;lgl&gt; FALSE, FALSE\n$ type_u22           &lt;lgl&gt; FALSE, FALSE\n$ type_int           &lt;lgl&gt; TRUE, FALSE\n$ type_inj           &lt;lgl&gt; FALSE, FALSE\n$ type_una           &lt;lgl&gt; FALSE, FALSE\n$ notes_young        &lt;lgl&gt; FALSE, FALSE\n$ notes_unavail      &lt;lgl&gt; FALSE, FALSE\n$ notes_notam        &lt;lgl&gt; FALSE, FALSE\n$ notes_can          &lt;lgl&gt; FALSE, FALSE\nThe profiles file was compiled from bits and pieces with lots of cleaning along the way. See “How this was done” below.\nThe roster types have been added as individual logical fields because a player can hold more than one type or designation. More about those …\n\nPlayer types\nIf true, the player fits the player type designation listed on the right side of the original profiles.\n\ntype_dp: DESIGNATED PLAYER\ntype_u22: U22 INITIATIVE PLAYER\ntype_int: INTERNATIONAL SLOT\ntype_inj: SEASON-ENDING INJURY\ntype_una: UNAVAILABLE PLAYER\n\n\n\nNotes\nIf true, the player fits the notes parameter.\n\nnotes_young (Young DP) Indicates a Young Designated Player. (This wasn’t really explained on the profiles).\nnotes_unavail *Indicates player is currently unavailable, and club may receive roster/international spot relief, but not Salary Budget relief unless otherwise determined pursuant to the loan agreement.\nnotes_notam ^Player cannot be converted from a Designated Player to a non-Designated Player by using Targeted Allocation Money.\nnotes_can +In addition to the International Roster Slots, each Canadian Club is permitted to designate up to three International Players who have been under contract with MLS and registered with one or more Canadian clubs for at least one year who will not count toward the club’s International Roster Slots.\nOff-roster Homegrown players can appear in MLS matches via a Short-Term Agreement."
+  },
+  {
+    "objectID": "index.html#how-this-was-done",
+    "href": "index.html#how-this-was-done",
+    "title": "MLS Player Rosters",
+    "section": "How this was done",
+    "text": "How this was done\n\nPinpoint extract\nI thought Google Pinpoint might be the easiest way to extract the data. Pinpoint wants individual files instead of one file with a bunch of pages, so I manually split the single document into individual files for each team. Once in Pinpoint I used Extract Structured Data tool with “table” processing to create two raw csv files:\n\ndata-raw/pinpoint/Rosters.csv has the main roster that is on the left side of the page.\ndata-raw/pinpoint/Other.csv has all the other player designations listed on the right side of the page.\n\nIn the case of this “other” data I had to do more than one pass with Pinpoint to catch all the teams so there are multiple “raw” files. They are all in the repo in the data-raw folder.\n\n\nCleaning\nAll other cleaning was done in R in Quarto notebooks:\n\nClean Roster: Cleans the rosters section\nClean Other: Cleans the other designations\nJoin files: Joins and cleans the two into the profiles\nQuality checks: Used as I was checking things\n\nThe cleaned csv files are exported into the data-out/ folder in the repo. There are also some .rds files in data-processed/"
   },
   {
     "objectID": "01-02-clean-other.html",
@@ -175,73 +203,52 @@
     "text": "Export\nExport csv and rds versions of the files.\n\nothers_clean |&gt; write_csv(\"data-out/others.csv\")\nothers_clean |&gt; write_rds(\"data-processed/others.rds\")"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "MLS Player Rosters",
+    "objectID": "01-01-clean-roster.html",
+    "href": "01-01-clean-roster.html",
+    "title": "Clean rosters",
     "section": "",
-    "text": "I found out on May 2, 2024 from the Austin Chronicle’s Eric Goodman that MLS published roster information for all MLS players.\nI downloaded the rosters in hopes of extracting the data. I cleaned it up and the files are available as CSVs below. The code is here.\nAs of May 3, 2024 this is a third pass and I’m sure it could benefit from more Quality Checks. I’ve found and fixed many problems and I wouldn’t be surprised if I missed things."
+    "text": "This notebook is to clean the main roster listed on the left part of the PDF.\nSee the home page about using Pinpoint to get to this point."
   },
   {
-    "objectID": "index.html#known-issues",
-    "href": "index.html#known-issues",
-    "title": "MLS Player Rosters",
-    "section": "Known issues",
-    "text": "Known issues\nThere are no known issues at this time. If you see any problems add an issue in Github or ping me on X/Twitter @crit.\nThat said I do have some to-do lists:\n\nTurn the roster_type into a factor?"
-  },
-  {
-    "objectID": "index.html#example",
-    "href": "index.html#example",
-    "title": "MLS Player Rosters",
-    "section": "Example",
-    "text": "Example\nBelow is an image from one team plucked from the combined file.\n\n\n\nExample profile"
-  },
-  {
-    "objectID": "index.html#published-file",
-    "href": "index.html#published-file",
-    "title": "MLS Player Rosters",
-    "section": "Published file",
-    "text": "Published file\n\nprofiles.csv is the result of this cleaning effort, where there is a single row for each player with flags for their roster player designations and notes.\n\nThis is a glimpse of the first two records from Austin FC so you can see all the column names, data types and example values.\n$ club_short         &lt;chr&gt; \"ATX\", \"ATX\"\n$ club               &lt;chr&gt; \"Austin FC\", \"Austin FC\"\n$ roster_type        &lt;chr&gt; \"SENIOR ROSTER\", \"SENIOR ROSTER\"\n$ name               &lt;chr&gt; \"Guilherme Biro\", \"Julio Cascante\"\n$ roster_designation &lt;chr&gt; NA, \"TAM Player\"\n$ current_status     &lt;chr&gt; NA, NA\n$ contract_thru      &lt;chr&gt; \"2026\", \"2025\"\n$ option_years       &lt;chr&gt; \"2027\", \"2026\"\n$ type_dp            &lt;lgl&gt; FALSE, FALSE\n$ type_u22           &lt;lgl&gt; FALSE, FALSE\n$ type_int           &lt;lgl&gt; TRUE, FALSE\n$ type_inj           &lt;lgl&gt; FALSE, FALSE\n$ type_una           &lt;lgl&gt; FALSE, FALSE\n$ notes_young        &lt;lgl&gt; FALSE, FALSE\n$ notes_unavail      &lt;lgl&gt; FALSE, FALSE\n$ notes_notam        &lt;lgl&gt; FALSE, FALSE\n$ notes_can          &lt;lgl&gt; FALSE, FALSE\nThe profiles file was compiled from bits and pieces with lots of cleaning along the way. See “How this was done” below.\nThe roster types have been added as individual logical fields because a player can hold more than one type or designation. More about those …\n\nPlayer types\nIf true, the player fits the player type designation listed on the right side of the original profiles.\n\ntype_dp: DESIGNATED PLAYER\ntype_u22: U22 INITIATIVE PLAYER\ntype_int: INTERNATIONAL SLOT\ntype_inj: SEASON-ENDING INJURY\ntype_una: UNAVAILABLE PLAYER\n\n\n\nNotes\nIf true, the player fits the notes parameter.\n\nnotes_young (Young DP) Indicates a Young Designated Player. (This wasn’t really explained on the profiles).\nnotes_unavail *Indicates player is currently unavailable, and club may receive roster/international spot relief, but not Salary Budget relief unless otherwise determined pursuant to the loan agreement.\nnotes_notam ^Player cannot be converted from a Designated Player to a non-Designated Player by using Targeted Allocation Money.\nnotes_can +In addition to the International Roster Slots, each Canadian Club is permitted to designate up to three International Players who have been under contract with MLS and registered with one or more Canadian clubs for at least one year who will not count toward the club’s International Roster Slots.\nOff-roster Homegrown players can appear in MLS matches via a Short-Term Agreement."
-  },
-  {
-    "objectID": "index.html#how-this-was-done",
-    "href": "index.html#how-this-was-done",
-    "title": "MLS Player Rosters",
-    "section": "How this was done",
-    "text": "How this was done\n\nPinpoint extract\nI thought Google Pinpoint might be the easiest way to extract the data. Pinpoint wants individual files instead of one file with a bunch of pages, so I manually split the single document into individual files for each team. Once in Pinpoint I used Extract Structured Data tool with “table” processing to create two raw csv files:\n\ndata-raw/pinpoint/Rosters.csv has the main roster that is on the left side of the page.\ndata-raw/pinpoint/Other.csv has all the other player designations listed on the right side of the page.\n\nIn the case of this “other” data I had to do more than one pass with Pinpoint to catch all the teams so there are multiple “raw” files. They are all in the repo in the data-raw folder.\n\n\nCleaning\nAll other cleaning was done in R in Quarto notebooks:\n\nClean Roster: Cleans the rosters section\nClean Other: Cleans the other designations\nJoin files: Joins and cleans the two into the profiles\nQuality checks: Used as I was checking things\n\nThe cleaned csv files are exported into the data-out/ folder in the repo. There are also some .rds files in data-processed/"
-  },
-  {
-    "objectID": "02-join.html",
-    "href": "02-join.html",
-    "title": "Join into profiles",
-    "section": "",
-    "text": "This notebooks takes the two cleaned files and joins them together into a single file."
-  },
-  {
-    "objectID": "02-join.html#setup",
-    "href": "02-join.html#setup",
-    "title": "Join into profiles",
+    "objectID": "01-01-clean-roster.html#setup",
+    "href": "01-01-clean-roster.html#setup",
+    "title": "Clean rosters",
     "section": "Setup",
     "text": "Setup\n\nlibrary(tidyverse)\nlibrary(janitor)"
   },
   {
-    "objectID": "02-join.html#import",
-    "href": "02-join.html#import",
-    "title": "Join into profiles",
+    "objectID": "01-01-clean-roster.html#import",
+    "href": "01-01-clean-roster.html#import",
+    "title": "Clean rosters",
     "section": "Import",
-    "text": "Import\n\nrosters &lt;- read_rds(\"data-processed/rosters.rds\")\nothers &lt;- read_rds(\"data-processed/others.rds\")"
+    "text": "Import\nThis pulls in the first file that was exported from Pinpoint.\n\nroster_raw &lt;- read_csv(\"data-raw/pinpoint/Roster.csv\") |&gt; clean_names()\n\nRows: 929 Columns: 7\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (7): File Name, NAME, ROSTER DESIGNATION, CURRENT STATUS, CONTRACT THRU,...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
   },
   {
-    "objectID": "02-join.html#joining-the-two-lists",
-    "href": "02-join.html#joining-the-two-lists",
-    "title": "Join into profiles",
-    "section": "Joining the two lists",
-    "text": "Joining the two lists\nNow that the data has been cleaned properly, this isn’t as huge a deal.\n\nroster_profiles_joined &lt;- rosters |&gt; \n  left_join(others, by = join_by(club_short, name))\n\nroster_profiles_joined\n\n\n  \n\n\n\nAnd now to fill in missing false values. This is an interesting and complex maneuver.\nChange all the variables where the datatype is logical, and use replace_na() to fill black valuse with FALSE.\n\nroster_profiles_clean &lt;- roster_profiles_joined |&gt; \n  mutate(\n    across(where(is.logical), ~ replace_na(.x, FALSE) )\n  )\n\nroster_profiles_clean"
+    "objectID": "01-01-clean-roster.html#roster-cleaning",
+    "href": "01-01-clean-roster.html#roster-cleaning",
+    "title": "Clean rosters",
+    "section": "Roster cleaning",
+    "text": "Roster cleaning\n\nMake short club name\nI first need to build a club name of some type, which I’m doing from the file name. I’m basing the short code based on another dataset I have mls-salaries.\nI also move around the new column and remove the Pinpoint link variable no one can use anyway.\n\nadd_short_name &lt;- roster_raw |&gt; \n  mutate(\n    club_short = str_extract(file_name, \"^\\\\w*\") |&gt; str_to_upper()\n  ) |&gt;\n  relocate(club_short) |&gt; \n  select(!c(file_name, validation_link))\n\nadd_short_name |&gt; glimpse()\n\nRows: 929\nColumns: 6\n$ club_short         &lt;chr&gt; \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"ATL\", \"A…\n$ name               &lt;chr&gt; \"Luis Abram\", \"Thiago Almada\", \"Josh Cohen\", \"Giorg…\n$ roster_designation &lt;chr&gt; \"TAM Player\", \"Young Designated Player\", NA, \"Desig…\n$ current_status     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, \"Unavailable - On Loan\"…\n$ contract_thru      &lt;chr&gt; \"2025\", \"2026\", \"2025\", \"2025\", \"2027\", \"2024\", \"20…\n$ option_years       &lt;chr&gt; \"2026\", NA, \"2026\", \"2026\", \"2028\", \"2025\", \"2025\",…\n\n\n\n\nMake a club name\n\nadd_long_name &lt;- add_short_name |&gt; \n  mutate(\n    club = case_match(\n      club_short,\n      \"ATL\" ~ \"Atlanta United\",\n      \"ATX\" ~ \"Austin FC\",\n      \"CHI\" ~ \"Chicago Fire FC\",\n      \"CIN\" ~ \"FC Cincinnati\",\n      \"CLB\" ~ \"Columbus Crew\",\n      \"CLT\" ~ \"Charlotte FC\",\n      \"COL\" ~ \"Colorado Rapids\",\n      \"DAL\" ~ \"FC Dallas\",\n      \"DC\" ~ \"D.C. United\",\n      \"HOU\" ~ \"Houston Dynamo FC\",\n      \"LA\" ~ \"LA Galaxy\",\n      \"LAFC\" ~ \"Los Angeles Football Club\",\n      \"MIA\" ~ \"Inter Miami FC\",\n      \"MIN\" ~ \"Minnesota United FC\",\n      \"MTL\" ~ \"CF Montréal\",\n      \"NE\" ~ \"New England Revolution\",\n      \"NSH\" ~ \"Nashville FC\",\n      \"NY\" ~ \"New York Red Bulls\",\n      \"NYC\" ~ \"New York City FC\",\n      \"ORL\" ~ \"Orlando City DC\",\n      \"PHI\" ~ \"Philadelphia Union\",\n      \"POR\" ~ \"Portland Timbers\",\n      \"RSL\" ~ \"Real Salt Lake\",\n      \"SEA\" ~ \"Seatle Sounders FC\",\n      \"SJ\" ~ \"San Jose Earthquakes\",\n      \"SKC\" ~ \"Sporting Kansas City\",\n      \"STL\" ~ \"St. Louis City SC\",\n      \"TOR\" ~ \"Toronto FC\",\n      \"VAN\" ~ \"Vancouver Whitecaps FC\",\n      .default = NA\n    )\n  ) |&gt; \n  relocate(club, .after = club_short)\n\nadd_long_name\n\n\n  \n\n\n\n\n\nMake roster designation\nThe roster is really split into different categories with an overline header. That’s bad data management so I create a roster_type variable to say what category they are in.\nI have to do a lot of work to get the player categories right. You’d have to run the code line by line to really see it, but I annotated the lines below.\n\nroster_subtype &lt;- add_long_name |&gt; \n  mutate(\n1    roster_type = case_when(\n2      is.na(lag(club_short)) ~ \"SENIOR ROSTER\",\n3      lag(club_short) != club_short ~ \"SENIOR ROSTER\",\n4      str_detect(name, \"[A-Z]{3}\") ~ name,\n      .default = NA\n    )\n  ) |&gt;\n5  fill(roster_type) |&gt;\n6  relocate(roster_type, .after = club) |&gt;\n7  filter(!str_detect(name, \"[A-Z]{3}\"))\n\nroster_subtype\n\n\n1\n\nMake a roster_type variable\n\n2\n\nI use lag() to basically find the first empty row which is the top row and set roster_type to “SENIOR ROSTER”. This is just for the first row of the data. There are probably better ways to do this.\n\n3\n\nHere I find when a new row has a different team using lag(), and if so set that row to SENIOR ROSTER. This is a typical use of lag.\n\n4\n\nIf the name variable has three capital letters in a row then it is one of the categories (always in all caps) so I use name value in roster_type. This is telling me when a new roster category is starting.\n\n5\n\nThis fill() takes those roster categories and fills them down the blank rows until it hits another existing category. This gives every play their category.\n\n6\n\nI move the new column to closer to the front of the tibble.\n\n7\n\nI remove the category headers since we don’t need those anymore.\n\n\n\n\n\n  \n\n\n\n\n\nSupplemental spot name\nHere we rename SUPPLEMENTAL SPOT 31 to just SUPPLEMENTAL SPOT. It was inconsistent and I feel like the “31” needs explanation anyway. (No, I dunno what it means yet, but it is the only number used.)\n\nroster_supp &lt;- roster_subtype |&gt; \n  mutate(\n    roster_type = case_match(\n      roster_type,\n      \"SUPPLEMENTAL SPOT 31\" ~ \"SUPPLEMENTAL SPOT\",\n      .default = roster_type\n    )\n  )\n\nroster_supp |&gt; count(roster_type)\n\n\n  \n\n\n\n\n\nStray pipe in value\n@philwest noted there is a stray | character in one of the fields. I fix that here.\n\nroster_desig_fix &lt;- roster_supp |&gt; \n  mutate(\n    roster_designation = str_remove(roster_designation, \"\\\\|\") |&gt; str_trim()\n  )"
   },
   {
-    "objectID": "02-join.html#export",
-    "href": "02-join.html#export",
-    "title": "Join into profiles",
-    "section": "Export",
-    "text": "Export\n\nroster_profiles_clean |&gt; write_csv(\"data-out/profiles.csv\")\nroster_profiles_clean |&gt; write_rds(\"data-processed/profiles.rds\")"
+    "objectID": "01-01-clean-roster.html#make-a-list-of-teams",
+    "href": "01-01-clean-roster.html#make-a-list-of-teams",
+    "title": "Clean rosters",
+    "section": "Make a list of teams",
+    "text": "Make a list of teams\nWhen I later work on the “other” player designations, I need to see if I have all the teams represented in my files. I create a list of those teams here so I can use it later.\n\nclubs &lt;- roster_desig_fix |&gt; \n  distinct(club_short)\n\nclubs"
+  },
+  {
+    "objectID": "01-01-clean-roster.html#export-the-files",
+    "href": "01-01-clean-roster.html#export-the-files",
+    "title": "Clean rosters",
+    "section": "Export the files",
+    "text": "Export the files\nSaving our the csv file for posterity. The rds file is the same data but in R’s native format. Also save out the clubs for later.\n\nroster_desig_fix |&gt; write_csv(\"data-out/rosters.csv\")\nroster_desig_fix |&gt; write_rds(\"data-processed/rosters.rds\")\nclubs |&gt; write_rds(\"data-processed/clubs.rds\")"
+  },
+  {
+    "objectID": "03-search.html",
+    "href": "03-search.html",
+    "title": "Roster profile search",
+    "section": "",
+    "text": "If you want to search these 2024 roster profiles …"
   }
 ]

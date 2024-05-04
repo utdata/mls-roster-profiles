@@ -1,0 +1,28 @@
+---
+title: "Roster profile search"
+---
+
+If you want to search these 2024 roster profiles ...
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+#| echo: false
+
+library(tidyverse)
+library(janitor)
+library(DT)
+
+profiles <- read_rds("data-processed/profiles.rds")
+```
+
+```{r}
+#| label: search
+#| message: false
+#| warning: false
+#| echo: false
+
+profiles |> datatable()
+```
+
